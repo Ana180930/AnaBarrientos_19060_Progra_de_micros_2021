@@ -1,0 +1,236 @@
+%CMF
+# %PSECTS Section
+# For each object file, details of its psects are enumerated here.
+# The begining of the section is indicated by %PSECTS.  The first
+# line indicates the name of the first object file, e.g.
+#    $foo.obj
+# Each line that follows describes a psect in that object file, until
+# the next object file.  The lines that describe a psect have the
+# format:
+#    <psect name> <class name> <space> <link address> <load addresses> <length> <delta>
+# All addresses and the length are given in unqualified hexadecimal
+# in delta units.  Any other numeric values are decimal.
+%PSECTS
+$build/default/production/Lab2.o
+resVect CODE 0 0 0 3 2
+code CODE 0 0 0 15A 2
+udata_bank0 BANK0 1 20 20 2 1
+config CONFIG 4 2007 2007 2 2
+# %UNUSED Section
+# This section enumerates the unused ranges of each CLASS. Each entry
+# is described on a single line as follows:
+#    <class name> <range> <delta>
+# Addresses given in the range are in hexadecimal and units of delta.
+%UNUSED
+RAM 22-6F 1
+RAM A0-EF 1
+RAM 110-16F 1
+RAM 190-1EF 1
+BANK0 22-6F 1
+BANK1 A0-EF 1
+BANK2 110-16F 1
+BANK3 190-1EF 1
+CONST 15A-1FFF 2
+ENTRY 15A-1FFF 2
+IDLOC 2000-2003 2
+CODE 15A-1FFF 2
+COMMON 70-7F 1
+EEDATA 2100-21FF 2
+STRCODE 15A-1FFF 2
+STRING 15A-1FFF 2
+# %LINETAB Section
+# This section enumerates the file/line to address mappings.
+# The beginning of the section is indicated by %LINETAB.
+# The first line indicates the name of the first object file, e.g.
+#   $foo.obj
+# Each line that follows describes a single mapping until the next
+# object file.  Mappings have the following format:
+#    <address> <psect name> <class name> ><line number>:<file name>
+# The address is absolute and given given in unqualified hex 
+# in delta units of the psect. All mappings within an object file
+# are in ascending order of addresses.
+# All other numeric values are in decimal.
+%LINETAB
+$build/default/production/Lab2.o
+0 resVect CODE >36:C:\MPLABX\Lab2.X\Lab2.s
+0 resVect CODE >37:C:\MPLABX\Lab2.X\Lab2.s
+0 resVect CODE >38:C:\MPLABX\Lab2.X\Lab2.s
+2 resVect CODE >40:C:\MPLABX\Lab2.X\Lab2.s
+0 code CODE >43:C:\MPLABX\Lab2.X\Lab2.s
+100 code CODE >45:C:\MPLABX\Lab2.X\Lab2.s
+100 code CODE >46:C:\MPLABX\Lab2.X\Lab2.s
+101 code CODE >47:C:\MPLABX\Lab2.X\Lab2.s
+102 code CODE >48:C:\MPLABX\Lab2.X\Lab2.s
+103 code CODE >49:C:\MPLABX\Lab2.X\Lab2.s
+104 code CODE >52:C:\MPLABX\Lab2.X\Lab2.s
+105 code CODE >53:C:\MPLABX\Lab2.X\Lab2.s
+106 code CODE >54:C:\MPLABX\Lab2.X\Lab2.s
+107 code CODE >55:C:\MPLABX\Lab2.X\Lab2.s
+108 code CODE >56:C:\MPLABX\Lab2.X\Lab2.s
+109 code CODE >57:C:\MPLABX\Lab2.X\Lab2.s
+10A code CODE >58:C:\MPLABX\Lab2.X\Lab2.s
+10B code CODE >59:C:\MPLABX\Lab2.X\Lab2.s
+10C code CODE >60:C:\MPLABX\Lab2.X\Lab2.s
+10D code CODE >61:C:\MPLABX\Lab2.X\Lab2.s
+10E code CODE >62:C:\MPLABX\Lab2.X\Lab2.s
+10F code CODE >64:C:\MPLABX\Lab2.X\Lab2.s
+110 code CODE >65:C:\MPLABX\Lab2.X\Lab2.s
+111 code CODE >66:C:\MPLABX\Lab2.X\Lab2.s
+112 code CODE >67:C:\MPLABX\Lab2.X\Lab2.s
+113 code CODE >68:C:\MPLABX\Lab2.X\Lab2.s
+114 code CODE >69:C:\MPLABX\Lab2.X\Lab2.s
+115 code CODE >70:C:\MPLABX\Lab2.X\Lab2.s
+116 code CODE >71:C:\MPLABX\Lab2.X\Lab2.s
+117 code CODE >72:C:\MPLABX\Lab2.X\Lab2.s
+118 code CODE >73:C:\MPLABX\Lab2.X\Lab2.s
+119 code CODE >74:C:\MPLABX\Lab2.X\Lab2.s
+11A code CODE >75:C:\MPLABX\Lab2.X\Lab2.s
+11B code CODE >76:C:\MPLABX\Lab2.X\Lab2.s
+11C code CODE >78:C:\MPLABX\Lab2.X\Lab2.s
+11D code CODE >79:C:\MPLABX\Lab2.X\Lab2.s
+11E code CODE >80:C:\MPLABX\Lab2.X\Lab2.s
+11F code CODE >81:C:\MPLABX\Lab2.X\Lab2.s
+120 code CODE >82:C:\MPLABX\Lab2.X\Lab2.s
+121 code CODE >83:C:\MPLABX\Lab2.X\Lab2.s
+122 code CODE >84:C:\MPLABX\Lab2.X\Lab2.s
+123 code CODE >86:C:\MPLABX\Lab2.X\Lab2.s
+123 code CODE >87:C:\MPLABX\Lab2.X\Lab2.s
+124 code CODE >88:C:\MPLABX\Lab2.X\Lab2.s
+125 code CODE >89:C:\MPLABX\Lab2.X\Lab2.s
+126 code CODE >90:C:\MPLABX\Lab2.X\Lab2.s
+127 code CODE >91:C:\MPLABX\Lab2.X\Lab2.s
+128 code CODE >92:C:\MPLABX\Lab2.X\Lab2.s
+129 code CODE >93:C:\MPLABX\Lab2.X\Lab2.s
+12A code CODE >94:C:\MPLABX\Lab2.X\Lab2.s
+12B code CODE >95:C:\MPLABX\Lab2.X\Lab2.s
+12C code CODE >96:C:\MPLABX\Lab2.X\Lab2.s
+12D code CODE >97:C:\MPLABX\Lab2.X\Lab2.s
+12E code CODE >98:C:\MPLABX\Lab2.X\Lab2.s
+12F code CODE >101:C:\MPLABX\Lab2.X\Lab2.s
+12F code CODE >102:C:\MPLABX\Lab2.X\Lab2.s
+130 code CODE >103:C:\MPLABX\Lab2.X\Lab2.s
+131 code CODE >104:C:\MPLABX\Lab2.X\Lab2.s
+132 code CODE >105:C:\MPLABX\Lab2.X\Lab2.s
+133 code CODE >107:C:\MPLABX\Lab2.X\Lab2.s
+134 code CODE >109:C:\MPLABX\Lab2.X\Lab2.s
+134 code CODE >110:C:\MPLABX\Lab2.X\Lab2.s
+135 code CODE >111:C:\MPLABX\Lab2.X\Lab2.s
+136 code CODE >112:C:\MPLABX\Lab2.X\Lab2.s
+137 code CODE >113:C:\MPLABX\Lab2.X\Lab2.s
+138 code CODE >115:C:\MPLABX\Lab2.X\Lab2.s
+139 code CODE >117:C:\MPLABX\Lab2.X\Lab2.s
+139 code CODE >118:C:\MPLABX\Lab2.X\Lab2.s
+13A code CODE >119:C:\MPLABX\Lab2.X\Lab2.s
+13B code CODE >120:C:\MPLABX\Lab2.X\Lab2.s
+13C code CODE >121:C:\MPLABX\Lab2.X\Lab2.s
+13D code CODE >122:C:\MPLABX\Lab2.X\Lab2.s
+13E code CODE >124:C:\MPLABX\Lab2.X\Lab2.s
+13E code CODE >125:C:\MPLABX\Lab2.X\Lab2.s
+13F code CODE >126:C:\MPLABX\Lab2.X\Lab2.s
+140 code CODE >127:C:\MPLABX\Lab2.X\Lab2.s
+141 code CODE >128:C:\MPLABX\Lab2.X\Lab2.s
+142 code CODE >129:C:\MPLABX\Lab2.X\Lab2.s
+143 code CODE >131:C:\MPLABX\Lab2.X\Lab2.s
+143 code CODE >132:C:\MPLABX\Lab2.X\Lab2.s
+144 code CODE >133:C:\MPLABX\Lab2.X\Lab2.s
+145 code CODE >134:C:\MPLABX\Lab2.X\Lab2.s
+146 code CODE >136:C:\MPLABX\Lab2.X\Lab2.s
+147 code CODE >137:C:\MPLABX\Lab2.X\Lab2.s
+148 code CODE >138:C:\MPLABX\Lab2.X\Lab2.s
+149 code CODE >139:C:\MPLABX\Lab2.X\Lab2.s
+14A code CODE >141:C:\MPLABX\Lab2.X\Lab2.s
+14B code CODE >142:C:\MPLABX\Lab2.X\Lab2.s
+14C code CODE >143:C:\MPLABX\Lab2.X\Lab2.s
+14D code CODE >145:C:\MPLABX\Lab2.X\Lab2.s
+14E code CODE >147:C:\MPLABX\Lab2.X\Lab2.s
+14E code CODE >148:C:\MPLABX\Lab2.X\Lab2.s
+14F code CODE >149:C:\MPLABX\Lab2.X\Lab2.s
+150 code CODE >150:C:\MPLABX\Lab2.X\Lab2.s
+151 code CODE >151:C:\MPLABX\Lab2.X\Lab2.s
+152 code CODE >152:C:\MPLABX\Lab2.X\Lab2.s
+153 code CODE >153:C:\MPLABX\Lab2.X\Lab2.s
+154 code CODE >155:C:\MPLABX\Lab2.X\Lab2.s
+154 code CODE >156:C:\MPLABX\Lab2.X\Lab2.s
+155 code CODE >157:C:\MPLABX\Lab2.X\Lab2.s
+156 code CODE >158:C:\MPLABX\Lab2.X\Lab2.s
+157 code CODE >159:C:\MPLABX\Lab2.X\Lab2.s
+158 code CODE >160:C:\MPLABX\Lab2.X\Lab2.s
+159 code CODE >162:C:\MPLABX\Lab2.X\Lab2.s
+# %SYMTAB Section
+# An enumeration of all symbols in the program.
+# The beginning of the section is indicated by %SYMTAB.
+# Each line describes a single symbol as follows:
+#    <label> <value> [-]<load-adj> <class> <space> <psect> <file-name>
+# The value and load-adj are both in unqualified hexadecimal.
+# All other numeric values are in decimal.  The load-adj is the
+# quantity one needs to add to the symbol value in order to obtain the load
+# address of the symbol.  This value may be signed. If the symbol
+# was defined in a psect then <psect> will be "-". File-name
+# is the name of the object file in which the symbol was defined.
+%SYMTAB
+__Hspace_0 15A 0 ABS 0 - -
+__Hspace_1 22 0 ABS 0 - -
+__Hspace_3 0 0 ABS 0 - -
+__Hspace_4 4010 0 ABS 0 - -
+__Hudata_bank0 0 0 ABS 0 udata_bank0 -
+__Hudata_bank1 0 0 ABS 0 udata_bank1 -
+__Hudata_bank2 0 0 ABS 0 udata_bank2 -
+__Hudata_bank3 0 0 ABS 0 udata_bank3 -
+__LresVect 0 0 ABS 0 resVect -
+__Hedata 0 0 ABS 0 edata -
+__Hudata 0 0 ABS 0 udata -
+__Hconfig 4012 0 CONFIG 4 config -
+__Ledata 0 0 ABS 0 edata -
+__Ludata 0 0 ABS 0 udata -
+__Hcode 0 0 ABS 0 code -
+__Hdata 0 0 ABS 0 data -
+__Lcode 0 0 ABS 0 code -
+__Ldata 0 0 ABS 0 data -
+__S0 0 0 ABS 0 - -
+__S1 22 0 ABS 0 - -
+__S3 0 0 ABS 0 - -
+__HresVect 0 0 ABS 0 resVect -
+__Lconfig 0 0 CONFIG 4 config -
+__Lspace_0 0 0 ABS 0 - -
+__Lspace_1 0 0 ABS 0 - -
+__Lspace_3 0 0 ABS 0 - -
+__Lspace_4 0 0 ABS 0 - -
+__Ludata_bank0 0 0 ABS 0 udata_bank0 -
+__Ludata_bank1 0 0 ABS 0 udata_bank1 -
+__Ludata_bank2 0 0 ABS 0 udata_bank2 -
+__Ludata_bank3 0 0 ABS 0 udata_bank3 -
+__Hudata_shr 0 0 ABS 0 udata_shr -
+__Ludata_shr 0 0 ABS 0 udata_shr -
+# %SPLITSTAB Section
+# This section enumerates all the psect splits performed by the assembler.
+# The beginning of the section is indicated by %SPLITSTAB.
+# Each line is a record a particular split, where the parent psect is on
+# the left and the child on the right.  Note that a child psect is always
+# split form the top of the parent psect. All splits from a given parent
+# are listed in the order in which they occurred.
+%SPLITSTAB
+# %DABS Section
+# This section contains a table of all usuage of the assember
+# directive DABS in the program. Each line has the following format:
+#   <name> <space> <address> <size>
+# If the DABS was originally labelled then that shall be <name>,
+# otherwise name will be "-".  The <space> number is in decimal.
+# <address> and <size> are in byte units as unqaulified hexadecimal
+%DABS
+# %SEGMENTS Section
+# This sections enumerates the segments of the program.  Each segment
+# is described on a single line as follows:
+#    <name> <space> <link address> <file address> <size> <delta>
+# Addresses and size are in unqualified hexadecimal.  The link address
+# and size are in units of delta. The file address is in units of bytes.
+# All other numeric quantities are in decimal.
+%SEGMENTS
+udata_bank0 1 20 20 2 1
+# %NOTES Section
+# This section contains data of all the note-psects.  The beginning of the section
+# is indicated by %NOTES. The first line indicates the name and decimal
+# byte-length of the first note-psect, e.g.
+#   $codecov_info_hdr 16
+# Each line that follows contains the byte-data of the psect in hexadecimal as a
+# space-separated list. These lines are limited to 16 bytes of data.
+%NOTES
