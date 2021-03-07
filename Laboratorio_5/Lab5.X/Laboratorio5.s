@@ -43,7 +43,7 @@ PSECT udata_bank0 ;memoria común, PSECT = sección del programa
 PSECT udata_shr ;memoria compartida, variables para interrupciones
     W_TEMP:	  DS 1 ;1 byte
     STATUS_TEMP:  DS 1 ;1 byte	 
-    flag:	  DS 1 ;8 bites
+    flag:	  DS 1 ;8 banderas
     #define	  flag_sel  0
     #define	  flag_dis1 1
     #define	  flag_dis2 2
@@ -299,7 +299,7 @@ division_decenas:
     movf    var_B,W		 ;mover var_A a w 
     subwf   var_A,F		 ;var_A - var_B, el resultado lo guarda en A		    
     incf    decenas,F		 ;incrementar decenas 
-    btfsc   STATUS,0		 ;Si está encendida STATUS = 1, ir a centenas
+    btfsc   STATUS,0		 ;Si está encendida STATUS = 1, ir a decenas
     goto    division_decenas	 ;Si no está encendida STATUS = 0, ir a decenas
     movlw   1
     subwf   decenas,F		 ;Centenas = centenas - 1
@@ -313,7 +313,7 @@ division_unidades:
     subwf   var_A,F		 ;var_A - var_B, el resultado lo guarda en A	    
     incf    unidades,F		 ;incrementar variable unidades	 
     btfsc   STATUS,0		 ;Si está encendida STATUS = 1, ir a unidades
-    goto    division_unidades	 ;Si no está encendida STATUS = 0, ir a decenas
+    goto    division_unidades	 ;Si no está encendida STATUS = 0, ir a unidades
     movlw   1
     subwf   unidades,F		 ;Unidades = Unidades - 1
     return
