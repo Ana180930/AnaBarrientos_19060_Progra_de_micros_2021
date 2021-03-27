@@ -2572,7 +2572,7 @@ pop:
  t1_int:
     ;Valor inicial para el tmr1: TMR1H y TMR1L
     banksel PORTA
-    incf PORTA,F ;incrementar puerto A
+    decf PORTA,F ;incrementar puerto A
     movlw 0xC2
     movwf TMR1H
     movlw 0xF7
@@ -2588,12 +2588,10 @@ t2_int:
     goto isr
 
 t0_int:
-    ;movlw 1
-    ;addwf cont_1ms,F ;Contador
-    bsf flag,0 ;Se pone en 1 cuando hay interrupción
     movlw 225 ;valor de 1ms
     movf TMR0 ;Valor inicial para el tmr0
     bcf ((INTCON) and 07Fh), 2 ;Clear inicial para la bandera
+    bsf flag,0 ;Se pone en 1 cuando hay interrupción
     goto isr
 
 PSECT code, delta=2, abs ; delta = tamaño de cada instrucción
@@ -2636,6 +2634,8 @@ main:
     clrf PORTC ;Para un clear inicial en los pines
     clrf PORTD
     clrf PORTE
+    clrf flag ;Limpiar variable banderas
+    bsf flag,1 ;encender bandera para display 1
     config_reloj
     call config_tmr1_temporizador
     call config_int_tmr1
@@ -2707,13 +2707,11 @@ config_int_tmr0:
     bcf ((INTCON) and 07Fh), 2 ;Limpiar bandera del tmr0
     return
 
-
 seleccionar_displays:
     bcf flag,0 ;apaga la bandera para selección
     clrf PORTD ;limpia puerto d
     call valores_division ;Realiza las divisiones
     call cargar_valor ;Carga los bits ya modificados al portc
-    bsf PORTD, 0
     btfsc flag,1 ;Revisa si el display 1 está encendido
     goto display_2 ;si está encendido,se enciende display 2
     btfsc flag,2 ;Revisa si el display 2 está encendido

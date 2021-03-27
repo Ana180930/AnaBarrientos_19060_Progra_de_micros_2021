@@ -97,12 +97,10 @@ t2_int:
     goto	isr
 
 t0_int:
-    ;movlw	1	    
-    ;addwf	cont_1ms,F	;Contador 	
-    bsf		flag,flag_sel   ;Se pone en 1 cuando hay interrupción
     movlw	225		;valor de 1ms
     movf	TMR0		;Valor inicial para el tmr0
     bcf		T0IF		;Clear inicial para la bandera
+    bsf		flag,flag_sel   ;Se pone en 1 cuando hay interrupción
     goto	isr
     
 PSECT code, delta=2, abs ; delta = tamaño de cada instrucción
@@ -217,8 +215,7 @@ config_int_tmr0:
     bsf	    T0IE	;Habilitar interrupción tmr0
     bcf	    T0IF	;Limpiar bandera del tmr0
     return
- 
-    
+  
 seleccionar_displays:
     bcf	    flag,flag_sel	;apaga la bandera para selección
     clrf    PORTD		;limpia puerto d

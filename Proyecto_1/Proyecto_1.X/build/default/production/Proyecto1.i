@@ -2469,7 +2469,7 @@ pull_ups macro
 endm
 
 
-;--------------------Configuración del oscilador para 10 ms--------------------
+;--------------------Configuración del oscilador para 250ms --------------------
 config_reloj macro
 banksel OSCCON
     bcf OSCCON,6
@@ -2482,7 +2482,7 @@ endm
 ;-------------------Configuracion del reinicio del tmr0------------------------
 reinicio_tmr0 macro
 banksel PORTA ;Va al banco 0 en donde se encuentra PORTA
-    movlw 236 ;Valor inicial para el tmr0
+    movlw 225 ;Valor inicial para el tmr0, tiempo de 1ms
     movwf TMR0
     bcf INTCON, 2 ;Limpia la bandera
 
@@ -2521,11 +2521,18 @@ CONFIG BOR4V=BOR40V
 
 
 PSECT udata_bank0 ;memoria común, PSECT = sección del programa
-
+    unidades: DS 1; 1 byte
+    decenas: DS 1; 1 byte
+    var_A: DS 1; 1 byte
+    var_B: DS 1; 1 byte
+    cont_port: DS 1; 1 byte
 PSECT udata_shr ;memoria compartida, variables para interrupciones
     W_TEMP: DS 1 ;1 byte
     STATUS_TEMP: DS 1 ;1 byte
-
+    cont_250ms: DS 1
+    cont_1s: DS 1
+    flag: DS 1 ;8 banderas
+# 53 "Proyecto1.s"
 PSECT resVect, class=CODE, abs, delta=2 ;abs = posición absoluta en donde se
 ;------------------ vector resest -----------------
 ORG 00h ;posición 0000h para el reset, ORG = ubicación dentro de un sector
@@ -2544,6 +2551,10 @@ push:
     movwf STATUS_TEMP ;Muevo el STATUS al reves a STATUS temporal
 
 isr: ;Rutina de interrupción
+    btfsc ((PIR1) and 07Fh), 0
+    goto t1_int ;Revisa bandera del tmr0
+    btfsc ((INTCON) and 07Fh), 2
+    goto t0_int
 
 pop:
     swapf STATUS_TEMP,W ;Regresa registro STATUS original a W
@@ -2553,7 +2564,22 @@ pop:
     retfie ;Regreso de la interrupcion
 
  ;-------------------------Subrutinas de interrupción--------------------
+t1_int:
+    banksel PORTA
+    ;decf PORTA,F ;incrementar puerto A
+    movlw 0xC2
+    movwf TMR1H
+    movlw 0xF7
+    movwf TMR1L
+    bcf PIR1, 0
+    goto isr
 
+t0_int:
+    movlw 225 ;valor de 1ms
+    movf TMR0 ;Valor inicial para el tmr0
+    bcf ((INTCON) and 07Fh), 2 ;Clear inicial para la bandera
+    bsf flag,0 ;Se pone en 1 cuando hay interrupción
+    goto isr
 
 PSECT code, delta=2, abs ; delta = tamaño de cada instrucción
 ORG 100h ;posición para el código
@@ -2562,7 +2588,7 @@ tabla:
     clrf PCLATH
     bsf PCLATH,0 ;Posición 01 00h
     andlw 00001111B ;Para que no se pase de los 4 bits
-    addwf PCL ;PCLATH = 01, PCL = 03h + 1h + W = 0
+    addwf PCL ;PCLATH = 01, PCL = 03h + 1h + W
     retlw 00111111B ;Display = 0
     retlw 00000110B ;Display = 1
     retlw 01011011B ;Display = 2
@@ -2573,12 +2599,6 @@ tabla:
     retlw 00000111B ;Display = 7
     retlw 01111111B ;Display = 8
     retlw 01101111B ;Display = 9
-    retlw 01110111B ;Display = A (10)
-    retlw 01111100B ;Display = b (11)
-    retlw 00111001B ;Display = c (12)
-    retlw 01011110B ;Display = D (13)
-    retlw 01111001B ;Display = E (14)
-    retlw 01110001B ;Display = F (15)
     retlw 0x0
     retfie
 ;---------------------------configuración---------------------------------
@@ -2605,10 +2625,53 @@ main:
     clrf PORTC ;Para un clear inicial en los pines
     clrf PORTD
     clrf PORTE
-
+    config_reloj
+    call config_tmr1_temporizador
+    call config_int_tmr1
+    call config_tmr0_temporizador
+    call config_int_tmr0
 ;--------------------Loop principal------------------------
 loop:
+
 
     goto loop
 
 ;--------------------sub rutinas----------------------------
+config_tmr0_temporizador:
+    banksel TRISA
+    bcf OPTION_REG, 5 ;Reloj interno para el temporizador
+    bcf OPTION_REG, 3 ;Preescaler para tmr0
+    bcf ((OPTION_REG) and 07Fh), 2
+    bcf ((OPTION_REG) and 07Fh), 1
+    bsf ((OPTION_REG) and 07Fh), 0 ;Prescaler de 4 (0 0 1)
+    reinicio_tmr0
+    return
+
+config_tmr1_temporizador:
+    banksel T1CON ;Banco 0
+    bcf T1CON,1 ;Oscilador interno
+    bsf T1CON,5
+    bsf T1CON,4 ;Prescaler 8 (1 1)
+    bsf T1CON,0 ;Bit on activado
+    clrf TMR1L
+    clrf TMR1H ;Limpiar los registros
+    movlw 0xC2 ;Valor inicial para el TMR1
+    movwf TMR1H
+    movlw 0xF7
+    movwf TMR1L
+    bcf PIR1,0 ;Limpiar bandera del timer 1
+    return
+
+config_int_tmr1:
+    banksel PIE1 ;Banco 1
+    bsf PIE1,0 ;Habilitar la interrupción del tmr1
+    bsf INTCON,6 ;Habilita las interrupciones perifericas
+    bsf INTCON,7 ;Habilita las interrupciones globales
+    return
+
+config_int_tmr0:
+    bsf ((INTCON) and 07Fh), 5 ;Habilitar interrupción tmr0
+    bcf ((INTCON) and 07Fh), 2 ;Limpiar bandera del tmr0
+    return
+
+    END
