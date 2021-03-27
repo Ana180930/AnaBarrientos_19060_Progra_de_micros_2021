@@ -40,16 +40,17 @@ PSECT udata_shr ;memoria compartida, variables para interrupciones
     STATUS_TEMP:    DS 1 ;1 byte	 
     cont_250ms:	    DS 1
     cont_1s:	    DS 1
+    flag_sel:	    DS 1 
+    #define	    flag_sel_disp 0
     flag:	    DS 1 ;8 banderas
-    #define	    flag_sel  0
-    #define	    flag_dis1 1
-    #define	    flag_dis2 2
-    #define	    flag_dis3 3
-    #define	    flag_dis4 4
-    #define	    flag_dis5 5
-    #define	    flag_dis6 6
-    #define	    flag_dis7 7
-    #define	    flag_dis8 8
+    #define	    flag_dis1 0
+    #define	    flag_dis2 1
+    #define	    flag_dis3 2
+    #define	    flag_dis4 3
+    #define	    flag_dis5 4
+    #define	    flag_dis6 5
+    #define	    flag_dis7 6
+    #define	    flag_dis8 7
 PSECT resVect, class=CODE, abs, delta=2 ;abs = posición absoluta en donde se 
 ;------------------ vector resest -----------------
 ORG 00h ;posición 0000h para el reset, ORG = ubicación dentro de un sector
@@ -83,7 +84,7 @@ pop:
  ;-------------------------Subrutinas de interrupción--------------------  
 t1_int:
     banksel	PORTA
-    decf	cont_time,F	;decrementar cada 1 segundo la variable 
+    decf	cont_time,F	;decrementar variable cada 1s 
     movlw	0xC2
     movwf	TMR1H
     movlw	0xF7
@@ -95,7 +96,7 @@ t0_int:
     movlw	225		;valor de 1ms
     movf	TMR0		;Valor inicial para el tmr0
     bcf		T0IF		;Clear inicial para la bandera
-    bsf		flag,flag_sel   ;Se pone en 1 cuando hay interrupción
+    bsf		flag_sel,flag_sel_disp  ;Se pone en 1 cuando hay interrupción
     goto	isr 
        
 PSECT code, delta=2, abs ; delta = tamaño de cada instrucción
@@ -142,6 +143,7 @@ main:
     clrf    PORTC	;Para un clear inicial en los pines
     clrf    PORTD
     clrf    PORTE
+    clrf    flag_sel		;Limpiar variable de seleccion
     clrf    flag		;Limpiar variable banderas
     bsf	    flag,flag_dis1	;encender bandera para display 1
     clrf    cont_time
@@ -152,8 +154,8 @@ main:
     call    config_int_tmr0
 ;--------------------Loop principal------------------------ 
 loop:  
-    
-    
+    btfsc	flag_sel,flag_sel_disp
+    goto	seleccionar_displays
     goto	loop
       
 ;--------------------sub rutinas----------------------------  
@@ -297,9 +299,9 @@ cargar_valor:
     return    
     
 valores_division:
-    movlw   10100000B
+    movlw   10100000B		    ;w = 10 decimal
     movwf   cont_time,F
-    movf    PORTA, w		    ;Mover puerto A a W
+    movf    cont_time,w		    ;Mover variable a W
     movwf   var_A		    ;Mover W a la variable, A = 255
     movlw   10			    
     movwf   var_B		    ;Variable B = 100
