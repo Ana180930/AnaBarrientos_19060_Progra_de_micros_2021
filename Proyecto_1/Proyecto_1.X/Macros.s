@@ -8,7 +8,7 @@ pull_ups macro
 endm
 
     
-;--------------------Configuración del oscilador para 10 ms--------------------
+;--------------------Configuración del oscilador para 250ms --------------------
 config_reloj macro
 banksel	OSCCON
     bcf		OSCCON,6
@@ -21,7 +21,7 @@ endm
 ;-------------------Configuracion del reinicio del tmr0------------------------
 reinicio_tmr0 macro
 banksel   PORTA	    ;Va al banco 0 en donde se encuentra PORTA    
-    movlw   236	    ;Valor inicial para el tmr0
+    movlw   134	    ;Valor inicial para el tmr0, cada 0.25 s
     movwf   TMR0
     bcf	    INTCON, 2 ;Limpia la bandera 
     
@@ -39,6 +39,5 @@ portb_int macro
     
     
 endm
-
 
 

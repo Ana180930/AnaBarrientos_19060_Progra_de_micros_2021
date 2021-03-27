@@ -1,8 +1,8 @@
-# 1 "Laboratorio5.s"
+# 1 "Proyecto1.s"
 # 1 "<built-in>" 1
-# 1 "Laboratorio5.s" 2
+# 1 "Proyecto1.s" 2
 ;******************************************************************************
-;Archivo: Laboratorio5.s
+;Archivo: Proyecto1.s
 ;Dispositivo: PIC16F887
 ;Autor: Ana Barrientos
 ;Carnet: 19060
@@ -2457,7 +2457,7 @@ stk_offset SET 0
 auto_size SET 0
 ENDM
 # 7 "C:\\Program Files\\Microchip\\xc8\\v2.31\\pic\\include\\xc.inc" 2 3
-# 12 "Laboratorio5.s" 2
+# 12 "Proyecto1.s" 2
 # 1 "./Macros.s" 1
 ;-------------------Resistencias pull_up puerto B------------------------------
 pull_ups macro
@@ -2500,7 +2500,7 @@ portb_int macro
 
 
 endm
-# 13 "Laboratorio5.s" 2
+# 13 "Proyecto1.s" 2
 
 ;Configuration word 1
 CONFIG FOSC=INTRC_NOCLKOUT
@@ -2521,26 +2521,10 @@ CONFIG BOR4V=BOR40V
 
 
 PSECT udata_bank0 ;memoria común, PSECT = sección del programa
-    var_display_1: DS 1; 1 byte
-    var_display_2: DS 1; 1 byte
-    unidades: DS 1; 1 byte
-    decenas: DS 1; 1 byte
-    centenas: DS 1; 1 byte
-    var_A: DS 1; 1 byte
-    var_B: DS 1; 1 byte
-    bits_low: DS 1; 1 byte
-    bits_high: DS 1; 1 byte
-    cont_porta: DS 1; 1 byte
+
 PSECT udata_shr ;memoria compartida, variables para interrupciones
     W_TEMP: DS 1 ;1 byte
     STATUS_TEMP: DS 1 ;1 byte
-    flag: DS 1 ;8 banderas
-
-
-
-
-
-
 
 PSECT resVect, class=CODE, abs, delta=2 ;abs = posición absoluta en donde se
 ;------------------ vector resest -----------------
@@ -2560,10 +2544,7 @@ push:
     movwf STATUS_TEMP ;Muevo el STATUS al reves a STATUS temporal
 
 isr: ;Rutina de interrupción
-    btfsc ((INTCON) and 07Fh), 0 ;revisa la bandera del puerto B
-    call rbif_portb ;Si la bandera está encencida, ejecuta la instruc.
-    btfsc ((INTCON) and 07Fh), 2 ;Revisa bandera del tmr0
-    call t0if_timer
+
 pop:
     swapf STATUS_TEMP,W ;Regresa registro STATUS original a W
     movwf STATUS ;Mueve w al registro STATUS.
@@ -2572,21 +2553,7 @@ pop:
     retfie ;Regreso de la interrupcion
 
  ;-------------------------Subrutinas de interrupción--------------------
- rbif_portb:
-    banksel PORTB
-    btfss PORTB,1 ;Revisa si se presiono el boton 1
-    incf PORTA,F ;Si se presiono, incrementa puerto A
-    btfss PORTB,2 ;Si no se presiono, revisa el boton 2
-    decf PORTA,F ;Si se presiono, decrementa puerto A
-    movf PORTB,w ;lee el puerto b, si no se ha presionado
-    bcf INTCON,0 ;Apaga la bandera de la interrupción
-    return
 
-t0if_timer:
-    reinicio_tmr0
-    bsf flag,0 ;Se pone en 1 cuando hay interrupción
-
-    return
 
 PSECT code, delta=2, abs ; delta = tamaño de cada instrucción
 ORG 100h ;posición para el código
@@ -2614,198 +2581,34 @@ tabla:
     retlw 01110001B ;Display = F (15)
     retlw 0x0
     retfie
-;----------------------configuración----------------
+;---------------------------configuración---------------------------------
 main:
     banksel ANSEL
     clrf ANSEL
     clrf ANSELH ;pines digitales
 
     banksel TRISA ;Entradas/salidas
-    clrf TRISA
-    clrf TRISC
-    bcf TRISD, 0
-    bcf TRISD, 1
-    bcf TRISD, 2
-    bcf TRISD, 3
-    bcf TRISD, 4
-    bsf TRISB, 1
-    bsf TRISB, 2
-    call config_interrup
-
+    clrf PORTC
+    clrf PORTA
+    clrf PORTD
+    bsf PORTB, 0
+    bsf PORTB, 1
+    bsf PORTB, 2
+    bcf PORTB, 3
+    bcf PORTB, 4
+    bcf PORTB, 5
+    bcf PORTB, 7
+    bcf PORTE, 0
     banksel PORTA ;De regreso a banco 0
+    clrf PORTA
     clrf PORTB
     clrf PORTC ;Para un clear inicial en los pines
     clrf PORTD
-    clrf PORTA
-    clrf flag ;Limpiar variable banderas
-    bsf flag,1 ;encender bandera para display 1
+    clrf PORTE
 
-
-    pull_ups ;Macros
-    config_reloj
-    call config_tmr0_temporizador
-    call config_interrup
-    portb_int
-;--------------------Loop principal----------------
+;--------------------Loop principal------------------------
 loop:
-    btfsc flag,0
-    goto seleccionar_displays
+
     goto loop
 
 ;--------------------sub rutinas----------------------------
-config_tmr0_temporizador:
-    banksel TRISA
-    bcf OPTION_REG, 5 ;Reloj interno para el temporizador
-    bcf OPTION_REG, 3 ;Preescaler para tmr0
-    bsf ((OPTION_REG) and 07Fh), 2
-    bcf ((OPTION_REG) and 07Fh), 1
-    bsf ((OPTION_REG) and 07Fh), 0 ;Prescaler de 64 (1 0 1)
-    reinicio_tmr0
-    return
-
-config_interrup:
-    bsf INTCON, 7 ;Habilitar todas las interrupciones
-    bsf ((INTCON) and 07Fh), 3 ;Habilitar interrupción portb
-    bsf ((INTCON) and 07Fh), 5 ;Habilitar interrupción tmr0
-    bcf ((INTCON) and 07Fh), 2 ;Limpiar bandera del tmr0
-    return
-
-seleccionar_displays:
-    bcf flag,0 ;apaga la bandera para selección
-    clrf PORTD ;limpia puerto d
-    call valores_division ;Realiza las divisiones
-    call cargar_valor ;Carga los bits ya modificados al portc
-    btfsc flag,1 ;Revisa si el display 1 está encendido
-    goto display_2 ;si está encendido,se enciende display 2
-    btfsc flag,2 ;Revisa si el display 2 está encendido
-    goto display_3 ;Si está enciendida, se enciende display 3
-    btfsc flag,3 ;Revisa si el display 3 está encendido
-    goto display_4 ;Si está enciendida, se enciende display 4
-    btfsc flag,4 ;Revisa si el display 4 está encendido
-    goto display_5 ;Si está enciendida, se enciende display 5
-    btfsc flag,5 ;Revisa si el display 5 está encendido
-    goto display_1 ;Si está enciendida, se enciende display 1
-    goto loop
-
-display_2:
-    movf var_display_2,W ;Mover variable a W
-    movwf PORTC ;Cargamos el valor al puerto c
-    bsf PORTD,1 ;encedemos el display 2
-    bcf flag,1 ;Apaga la bandera del display 1
-    bsf flag,2 ;Enciende la bandera display 2
-    goto loop
-
-display_1:
-    movf var_display_1,W ;Mover variable a W
-    movwf PORTC ;Cargamos el valor al puerto c
-    bsf PORTD,0 ;encedemos el display 1
-    bcf flag,5 ;Apaga la bandera del display 5
-    bsf flag,1 ;Enciende la bandera del display 1
-    goto loop
-
-display_3:
-    movf unidades,W ;Mover variable a W
-    movwf PORTC ;Cargamos el valor al puerto c
-    bsf PORTD,2 ;encedemos el display 3
-    bcf flag,2 ;Apaga la bandera del display 2
-    bsf flag,3 ;Enciende la bandera del display 3
-    goto loop
-
-display_4:
-    movf decenas,W
-    movwf PORTC ;Cargamos el valor al puerto c
-    bsf PORTD,3 ;encedemos el display 4
-    bcf flag,3 ;Apaga la bandera del display 3
-    bsf flag,4 ;Enciende la bandera del display 4
-    goto loop
-
-display_5:
-    movf centenas,W ;Mover variable a W
-    movwf PORTC ;Cargamos el valor al puerto c
-    bsf PORTD,4 ;encedemos el display 5
-    bcf flag,4 ;Apaga la bandera del display 4
-    bsf flag,5 ;Enciende la bandera del display 5
-    goto loop
-
-cargar_valor:
-    movf PORTA,W ;Mueve el puerto A a W
-    movwf cont_porta ;Luego lo mueve a mi variable cont porta
-    movwf bits_low ;Mueve w a la variable bits_low
-    swapf bits_low,W ;Intercambio los nibbles y los guardo.
-    movwf bits_high
-
-    ;Convertir los bits
-    movf bits_low,W ;Mueve la variable a W
-    andlw 00001111B ;Agrega los bits menos significativos a w
-    call tabla
-    movwf var_display_1 ;Regresa los bits modificados
-    movf bits_high,W ;Mueve la variable a W
-    andlw 00001111B ;Agrega los bits menos significativos a w
-    call tabla
-    movwf var_display_2 ;Regresa los bits modificados
-    ;Convertir para display 3
-    movf unidades, W ;Mueve la variable a W
-    andlw 00001111B ;Agrega los bits menos significativos a w
-    call tabla
-    movwf unidades ;Regresa los bits modificados
-    ;Convertir para display 4
-    movf decenas, W ;Mueve la variable a W
-    andlw 00001111B ;Agrega los bits menos significativos a w
-    call tabla
-    movwf decenas ;Regresa los bits modificados
-    ;Convertir para display 5
-    movf centenas, W ;Mueve la variable a W
-    andlw 00001111B ;Agrega los bits menos significativos a w
-    call tabla
-    movwf centenas ;Regresa los bits modificados
-
-    return
-
-valores_division:
-    movf PORTA, w ;Mover puerto A a W
-    movwf var_A ;Mover W a la variable
-    movlw 100
-    movwf var_B ;Variable B = 100
-    movlw 0
-    movwf centenas ;Variable centenas = 0
-    movlw 0
-    movwf decenas ;Variable decenas = 0
-    movlw 0
-    movwf unidades ;Variable unidades = 0
-
-division_centenas:
-    movf var_B,W ;mover var_A a w
-    subwf var_A,F ;var_A - var_B, el resultado lo guarda en A
-    incf centenas,F ;incrementar centenas
-    btfsc STATUS,0 ;Si está encendida STATUS = 1, ir a centenas
-    goto division_centenas ;Si no está encendida STATUS = 0, ir a decenas
-    movlw 1
-    subwf centenas,F ;Centenas = centenas - 1
-    movlw 100
-    addwf var_A,F ;A = 100 + A
-
-division_decenas:
-    movlw 10
-    movwf var_B ;B = 10
-    movf var_B,W ;mover var_A a w
-    subwf var_A,F ;var_A - var_B, el resultado lo guarda en A
-    incf decenas,F ;incrementar decenas
-    btfsc STATUS,0 ;Si está encendida STATUS = 1, ir a decenas
-    goto division_decenas ;Si no está encendida STATUS = 0, ir a decenas
-    movlw 1
-    subwf decenas,F ;Centenas = centenas - 1
-    movlw 10
-    addwf var_A,F ;A = 10 + A
-
-division_unidades:
-    movlw 1
-    movwf var_B ;B = 1
-    movf var_B,W ;mover var_A a w
-    subwf var_A,F ;var_A - var_B, el resultado lo guarda en A
-    incf unidades,F ;incrementar variable unidades
-    btfsc STATUS,0 ;Si está encendida STATUS = 1, ir a unidades
-    goto division_unidades ;Si no está encendida STATUS = 0, ir a unidades
-    movlw 1
-    subwf unidades,F ;Unidades = Unidades - 1
-    return
-END

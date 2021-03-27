@@ -21,7 +21,7 @@ endm
 ;-------------------Configuracion del reinicio del tmr0------------------------
 reinicio_tmr0 macro
 banksel   PORTA	    ;Va al banco 0 en donde se encuentra PORTA    
-    movlw   236	    ;Valor inicial para el tmr0
+    movlw   225	    ;Valor inicial para el tmr0
     movwf   TMR0
     bcf	    INTCON, 2 ;Limpia la bandera 
     
@@ -39,6 +39,5 @@ portb_int macro
     
     
 endm
-
 
 

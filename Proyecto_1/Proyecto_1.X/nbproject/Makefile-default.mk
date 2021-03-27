@@ -30,12 +30,12 @@ ifeq ($(TYPE_IMAGE), DEBUG_RUN)
 IMAGE_TYPE=debug
 OUTPUT_SUFFIX=hex
 DEBUGGABLE_SUFFIX=elf
-FINAL_IMAGE=dist/${CND_CONF}/${IMAGE_TYPE}/Lab5.X.${IMAGE_TYPE}.${OUTPUT_SUFFIX}
+FINAL_IMAGE=dist/${CND_CONF}/${IMAGE_TYPE}/Proyecto_1.X.${IMAGE_TYPE}.${OUTPUT_SUFFIX}
 else
 IMAGE_TYPE=production
 OUTPUT_SUFFIX=hex
 DEBUGGABLE_SUFFIX=elf
-FINAL_IMAGE=dist/${CND_CONF}/${IMAGE_TYPE}/Lab5.X.${IMAGE_TYPE}.${OUTPUT_SUFFIX}
+FINAL_IMAGE=dist/${CND_CONF}/${IMAGE_TYPE}/Proyecto_1.X.${IMAGE_TYPE}.${OUTPUT_SUFFIX}
 endif
 
 ifeq ($(COMPARE_BUILD), true)
@@ -57,17 +57,17 @@ OBJECTDIR=build/${CND_CONF}/${IMAGE_TYPE}
 DISTDIR=dist/${CND_CONF}/${IMAGE_TYPE}
 
 # Source Files Quoted if spaced
-SOURCEFILES_QUOTED_IF_SPACED=Laboratorio5.s
+SOURCEFILES_QUOTED_IF_SPACED=Proyecto1.s Macros.s
 
 # Object Files Quoted if spaced
-OBJECTFILES_QUOTED_IF_SPACED=${OBJECTDIR}/Laboratorio5.o
-POSSIBLE_DEPFILES=${OBJECTDIR}/Laboratorio5.o.d
+OBJECTFILES_QUOTED_IF_SPACED=${OBJECTDIR}/Proyecto1.o ${OBJECTDIR}/Macros.o
+POSSIBLE_DEPFILES=${OBJECTDIR}/Proyecto1.o.d ${OBJECTDIR}/Macros.o.d
 
 # Object Files
-OBJECTFILES=${OBJECTDIR}/Laboratorio5.o
+OBJECTFILES=${OBJECTDIR}/Proyecto1.o ${OBJECTDIR}/Macros.o
 
 # Source Files
-SOURCEFILES=Laboratorio5.s
+SOURCEFILES=Proyecto1.s Macros.s
 
 
 
@@ -88,27 +88,43 @@ FIXDEPS=fixDeps
 ifneq ($(INFORMATION_MESSAGE), )
 	@echo $(INFORMATION_MESSAGE)
 endif
-	${MAKE}  -f nbproject/Makefile-default.mk dist/${CND_CONF}/${IMAGE_TYPE}/Lab5.X.${IMAGE_TYPE}.${OUTPUT_SUFFIX}
+	${MAKE}  -f nbproject/Makefile-default.mk dist/${CND_CONF}/${IMAGE_TYPE}/Proyecto_1.X.${IMAGE_TYPE}.${OUTPUT_SUFFIX}
 
 MP_PROCESSOR_OPTION=PIC16F887
 # ------------------------------------------------------------------------------------
 # Rules for buildStep: pic-as-assembler
 ifeq ($(TYPE_IMAGE), DEBUG_RUN)
-${OBJECTDIR}/Laboratorio5.o: Laboratorio5.s  nbproject/Makefile-${CND_CONF}.mk
+${OBJECTDIR}/Proyecto1.o: Proyecto1.s  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} "${OBJECTDIR}" 
-	@${RM} ${OBJECTDIR}/Laboratorio5.o 
+	@${RM} ${OBJECTDIR}/Proyecto1.o 
 	${MP_AS} -mcpu=PIC16F887 -c \
-	-o ${OBJECTDIR}/Laboratorio5.o \
-	Laboratorio5.s \
+	-o ${OBJECTDIR}/Proyecto1.o \
+	Proyecto1.s \
+	 -msummary=+mem,-psect,-class,-hex,-file,-sha1,-sha256,-xml,-xmlfull -fmax-errors=20 -mwarn=0 -xassembler-with-cpp
+	
+${OBJECTDIR}/Macros.o: Macros.s  nbproject/Makefile-${CND_CONF}.mk
+	@${MKDIR} "${OBJECTDIR}" 
+	@${RM} ${OBJECTDIR}/Macros.o 
+	${MP_AS} -mcpu=PIC16F887 -c \
+	-o ${OBJECTDIR}/Macros.o \
+	Macros.s \
 	 -msummary=+mem,-psect,-class,-hex,-file,-sha1,-sha256,-xml,-xmlfull -fmax-errors=20 -mwarn=0 -xassembler-with-cpp
 	
 else
-${OBJECTDIR}/Laboratorio5.o: Laboratorio5.s  nbproject/Makefile-${CND_CONF}.mk
+${OBJECTDIR}/Proyecto1.o: Proyecto1.s  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} "${OBJECTDIR}" 
-	@${RM} ${OBJECTDIR}/Laboratorio5.o 
+	@${RM} ${OBJECTDIR}/Proyecto1.o 
 	${MP_AS} -mcpu=PIC16F887 -c \
-	-o ${OBJECTDIR}/Laboratorio5.o \
-	Laboratorio5.s \
+	-o ${OBJECTDIR}/Proyecto1.o \
+	Proyecto1.s \
+	 -msummary=+mem,-psect,-class,-hex,-file,-sha1,-sha256,-xml,-xmlfull -fmax-errors=20 -mwarn=0 -xassembler-with-cpp
+	
+${OBJECTDIR}/Macros.o: Macros.s  nbproject/Makefile-${CND_CONF}.mk
+	@${MKDIR} "${OBJECTDIR}" 
+	@${RM} ${OBJECTDIR}/Macros.o 
+	${MP_AS} -mcpu=PIC16F887 -c \
+	-o ${OBJECTDIR}/Macros.o \
+	Macros.s \
 	 -msummary=+mem,-psect,-class,-hex,-file,-sha1,-sha256,-xml,-xmlfull -fmax-errors=20 -mwarn=0 -xassembler-with-cpp
 	
 endif
@@ -116,16 +132,16 @@ endif
 # ------------------------------------------------------------------------------------
 # Rules for buildStep: pic-as-linker
 ifeq ($(TYPE_IMAGE), DEBUG_RUN)
-dist/${CND_CONF}/${IMAGE_TYPE}/Lab5.X.${IMAGE_TYPE}.${OUTPUT_SUFFIX}: ${OBJECTFILES}  nbproject/Makefile-${CND_CONF}.mk    
+dist/${CND_CONF}/${IMAGE_TYPE}/Proyecto_1.X.${IMAGE_TYPE}.${OUTPUT_SUFFIX}: ${OBJECTFILES}  nbproject/Makefile-${CND_CONF}.mk    
 	@${MKDIR} dist/${CND_CONF}/${IMAGE_TYPE} 
 	${MP_LD} -mcpu=PIC16F887 ${OBJECTFILES_QUOTED_IF_SPACED} \
-	-o dist/${CND_CONF}/${IMAGE_TYPE}/Lab5.X.${IMAGE_TYPE}.${OUTPUT_SUFFIX} \
+	-o dist/${CND_CONF}/${IMAGE_TYPE}/Proyecto_1.X.${IMAGE_TYPE}.${OUTPUT_SUFFIX} \
 	 -msummary=+mem,-psect,-class,-hex,-file,-sha1,-sha256,-xml,-xmlfull -mcallgraph=std -mno-download-hex
 else
-dist/${CND_CONF}/${IMAGE_TYPE}/Lab5.X.${IMAGE_TYPE}.${OUTPUT_SUFFIX}: ${OBJECTFILES}  nbproject/Makefile-${CND_CONF}.mk   
+dist/${CND_CONF}/${IMAGE_TYPE}/Proyecto_1.X.${IMAGE_TYPE}.${OUTPUT_SUFFIX}: ${OBJECTFILES}  nbproject/Makefile-${CND_CONF}.mk   
 	@${MKDIR} dist/${CND_CONF}/${IMAGE_TYPE} 
 	${MP_LD} -mcpu=PIC16F887 ${OBJECTFILES_QUOTED_IF_SPACED} \
-	-o dist/${CND_CONF}/${IMAGE_TYPE}/Lab5.X.${IMAGE_TYPE}.${OUTPUT_SUFFIX} \
+	-o dist/${CND_CONF}/${IMAGE_TYPE}/Proyecto_1.X.${IMAGE_TYPE}.${OUTPUT_SUFFIX} \
 	 -msummary=+mem,-psect,-class,-hex,-file,-sha1,-sha256,-xml,-xmlfull -mcallgraph=std -mno-download-hex
 endif
 
