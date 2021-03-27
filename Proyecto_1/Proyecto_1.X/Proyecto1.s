@@ -34,7 +34,7 @@ PSECT udata_bank0 ;memoria común, PSECT = sección del programa
     decenas:		    DS 1; 1 byte
     var_A:		    DS 1; 1 byte
     var_B:		    DS 1; 1 byte
-    cont_port:		    DS 1; 1 byte 
+    cont_time:		    DS 1; 1 byte 
 PSECT udata_shr ;memoria compartida, variables para interrupciones
     W_TEMP:	    DS 1 ;1 byte
     STATUS_TEMP:    DS 1 ;1 byte	 
@@ -83,7 +83,7 @@ pop:
  ;-------------------------Subrutinas de interrupción--------------------  
 t1_int:
     banksel	PORTA
-    ;decf	PORTA,F	    ;incrementar puerto A
+    decf	cont_time,F	;decrementar cada 1 segundo la variable 
     movlw	0xC2
     movwf	TMR1H
     movlw	0xF7
@@ -142,6 +142,9 @@ main:
     clrf    PORTC	;Para un clear inicial en los pines
     clrf    PORTD
     clrf    PORTE
+    clrf    flag		;Limpiar variable banderas
+    bsf	    flag,flag_dis1	;encender bandera para display 1
+    clrf    cont_time
     config_reloj
     call    config_tmr1_temporizador
     call    config_int_tmr1
@@ -190,6 +193,145 @@ config_int_tmr0:
     bsf	    T0IE	;Habilitar interrupción tmr0
     bcf	    T0IF	;Limpiar bandera del tmr0
     return   
+
+seleccionar_displays:
+    bcf	    flag,flag_sel	;apaga la bandera para selección
+    clrf    PORTA		;limpia puerto d
+    call    valores_division	;Realiza las divisiones
+    call    cargar_valor	;Carga los bits ya modificados al portc	
+    btfsc   flag,flag_dis1	;Revisa si el display 1 está encendido
+    goto    display_2		;si está encendido,se enciende display 2
+    btfsc   flag,flag_dis2	;Revisa si el display 2 está encendido
+    goto    display_3		;Si está enciendida, se enciende display 3
+    btfsc   flag,flag_dis3	;Revisa si el display 3 está encendido
+    goto    display_4		;Si está enciendida, se enciende display 4
+    btfsc   flag,flag_dis4	;Revisa si el display 4 está encendido
+    goto    display_5		;Si está enciendida, se enciende display 5
+    btfsc   flag,flag_dis5	;Revisa si el display 5 está encendido
+    goto    display_6		;Si está enciendida, se enciende display 1
+    btfsc   flag,flag_dis6	;Revisa si el display 5 está encendido
+    goto    display_7		;Si está enciendida, se enciende display 1
+    btfsc   flag,flag_dis7	;Revisa si el display 5 está encendido
+    goto    display_8		;Si está enciendida, se enciende display 1
+    btfsc   flag,flag_dis8	;Revisa si el display 5 está encendido
+    goto    display_1		;Si está enciendida, se enciende display 1
+    
+    goto    loop
+    
+display_2:
+    movf    decenas,W	;Mover variable a W
+    movwf   PORTC		;Cargamos el valor al puerto c
+    bsf	    PORTA,0		;encedemos el display 2
+    bcf	    flag,flag_dis1	;Apaga la bandera del display 1
+    bsf	    flag,flag_dis2	;Enciende la bandera display 2
+    goto    loop
+    
+display_1:
+    movf    unidades,W	;Mover variable a W
+    movwf   PORTC		;Cargamos el valor al puerto c
+    bsf	    PORTA,1		;encedemos el display 1
+    bcf	    flag,flag_dis5	;Apaga la bandera del display 5
+    bsf	    flag,flag_dis1	;Enciende la bandera del display 1
+    goto    loop
+
+display_3:
+    movf    decenas,W		;Mover variable a W
+    movwf   PORTC		;Cargamos el valor al puerto c
+    bsf	    PORTA,2		;encedemos el display 3
+    bcf	    flag,flag_dis2	;Apaga la bandera del display 2
+    bsf	    flag,flag_dis3	;Enciende la bandera del display 3
+    goto    loop
+    
+display_4:
+    movf    unidades,W
+    movwf   PORTC		;Cargamos el valor al puerto c
+    bsf	    PORTA,3		;encedemos el display 4
+    bcf	    flag,flag_dis3	;Apaga la bandera del display 3
+    bsf	    flag,flag_dis4	;Enciende la bandera del display 4
+    goto    loop
+
+display_5:
+    movf    decenas,W		;Mover variable a W
+    movwf   PORTC		;Cargamos el valor al puerto c
+    bsf	    PORTA,4		;encedemos el display 5
+    bcf	    flag,flag_dis4	;Apaga la bandera del display 4
+    bsf	    flag,flag_dis5	;Enciende la bandera del display 5
+    goto    loop
+    
+display_6:
+    movf    unidades,W		;Mover variable a W
+    movwf   PORTC		;Cargamos el valor al puerto c
+    bsf	    PORTA,5		;encedemos el display 5
+    bcf	    flag,flag_dis5	;Apaga la bandera del display 4
+    bsf	    flag,flag_dis6	;Enciende la bandera del display 5
+    goto    loop    
+    
+display_7:
+    movf    decenas,W		;Mover variable a W
+    movwf   PORTC		;Cargamos el valor al puerto c
+    bsf	    PORTA,6		;encedemos el display 5
+    bcf	    flag,flag_dis6	;Apaga la bandera del display 4
+    bsf	    flag,flag_dis7	;Enciende la bandera del display 5
+    goto    loop    
+
+display_8:
+    movf    unidades,W		;Mover variable a W
+    movwf   PORTC		;Cargamos el valor al puerto c
+    bsf	    PORTA,7		;encedemos el display 5
+    bcf	    flag,flag_dis7	;Apaga la bandera del display 4
+    bsf	    flag,flag_dis8	;Enciende la bandera del display 5
+    goto    loop
+   
+cargar_valor: 
+   ;Convertir para display 2
+    movf    decenas, W		;Mueve la variable a W
+    andlw   00001111B		;Agrega los bits menos significativos a w
+    call    tabla
+    movwf   decenas		;Regresa los bits modificados
+    ;Convertir para display 1
+    movf    unidades, W		;Mueve la variable a W
+    andlw   00001111B		;Agrega los bits menos significativos a w
+    call    tabla
+    movwf   unidades		;Regresa los bits modificados
+    
+    return    
+    
+valores_division:
+    movlw   10100000B
+    movwf   cont_time,F
+    movf    PORTA, w		    ;Mover puerto A a W
+    movwf   var_A		    ;Mover W a la variable, A = 255
+    movlw   10			    
+    movwf   var_B		    ;Variable B = 100
+    movlw   0		
+    movwf   decenas		    ;Variable decenas = 0    
+    movlw   0
+    movwf   unidades		    ;Variable unidades = 0
+    
+division_decenas:
+    movlw   10
+    movwf   var_B		 ;B = 10
+    movf    var_B,W		 ;mover var_A a w 
+    subwf   var_A,F		 ;var_A - var_B, el resultado lo guarda en A		    
+    incf    decenas,F		 ;incrementar decenas 
+    btfsc   STATUS,0		 ;Si está encendida STATUS = 1, ir a decenas
+    goto    division_decenas	 ;Si no está encendida STATUS = 0, ir a decenas
+    movlw   1
+    subwf   decenas,F		 ;Decenas = decenas - 1, 25
+    movlw   10
+    addwf   var_A,F		 ;A = 10 + A, A = 255
+
+division_unidades:
+    movlw   1
+    movwf   var_B		 ;B = 1
+    movf    var_B,W		 ;mover var_A a w 
+    subwf   var_A,F		 ;var_A - var_B, el resultado lo guarda en A	    
+    incf    unidades,F		 ;incrementar variable unidades	 
+    btfsc   STATUS,0		 ;Si está encendida STATUS = 1, ir a unidades
+    goto    division_unidades	 ;Si no está encendida STATUS = 0, ir a unidades
+    movlw   1
+    subwf   unidades,F		 ;Unidades = Unidades - 1
+    return    
     
     END
      
