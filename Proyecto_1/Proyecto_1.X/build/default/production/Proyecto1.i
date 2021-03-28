@@ -2498,8 +2498,17 @@ portb_int macro
     movf PORTB,W ;Mueve registro a w, para comenzar a leerlo
     bcf INTCON,0 ;Por si la bandera está encendida
 
-
 endm
+;----------------------------Tiempo en vías----------------------------------
+tiempo_vias macro
+    movlw 10
+    movwf Tv1 ;Tv1 = 10
+    movlw 6 ;w = 6
+    subwf Tv1,W ;Tv1 - w = 10 - 6 = 4s, guardo en W
+    movwf TIME_ACT
+    movf TIME_ACT,W
+    movwf var_A ;A = 4
+    endm
 # 13 "Proyecto1.s" 2
 
 ;Configuration word 1
@@ -2521,11 +2530,27 @@ CONFIG BOR4V=BOR40V
 
 
 PSECT udata_bank0 ;memoria común, PSECT = sección del programa
-    unidades: DS 1; 1 byte
-    decenas: DS 1; 1 byte
+    unidades: DS 1
+    decenas: DS 1
+    unidades_1: DS 1; 1 byte
+    decenas_1: DS 1; 1 byte
+    unidades_2: DS 1; 1 byte
+    decenas_2: DS 1; 1 byte
+    unidades_3: DS 1; 1 byte
+    decenas_3: DS 1; 1 byte
+    unidades_4: DS 1; 1 byte
+    decenas_4: DS 1; 1 byte
+    unidades_5: DS 1; 1 byte
+    decenas_5: DS 1; 1 byte
     var_A: DS 1; 1 byte
     var_B: DS 1; 1 byte
-    cont_time: DS 1; 1 byte
+    TIME_ACT: DS 1; 1 byte
+    TIME_TEMP: DS 1; 1 byte
+    Tv1: DS 1; 1 byte
+    Tv2: DS 1; 1 byte
+    Tv3: DS 1; 1 byte
+    verde_t: DS 1; 1 byte
+    amarillo: DS 1; 1 byte
 PSECT udata_shr ;memoria compartida, variables para interrupciones
     W_TEMP: DS 1 ;1 byte
     STATUS_TEMP: DS 1 ;1 byte
@@ -2534,7 +2559,7 @@ PSECT udata_shr ;memoria compartida, variables para interrupciones
     flag_sel: DS 1
 
     flag: DS 1 ;8 banderas
-# 54 "Proyecto1.s"
+# 70 "Proyecto1.s"
 PSECT resVect, class=CODE, abs, delta=2 ;abs = posición absoluta en donde se
 ;------------------ vector resest -----------------
 ORG 00h ;posición 0000h para el reset, ORG = ubicación dentro de un sector
@@ -2568,7 +2593,6 @@ pop:
  ;-------------------------Subrutinas de interrupción--------------------
 t1_int:
     banksel PORTA
-    decf cont_time,F ;decrementar variable cada 1s
     movlw 0xC2
     movwf TMR1H
     movlw 0xF7
@@ -2630,7 +2654,6 @@ main:
     clrf flag_sel ;Limpiar variable de seleccion
     clrf flag ;Limpiar variable banderas
     bsf flag,0 ;encender bandera para display 1
-    clrf cont_time
     config_reloj
     call config_tmr1_temporizador
     call config_int_tmr1
@@ -2681,8 +2704,8 @@ config_int_tmr0:
     return
 
 seleccionar_displays:
-    bcf flag,flag_sel ;apaga la bandera para selección
-    clrf PORTA ;limpia puerto d
+    bcf flag_sel,0 ;apaga la bandera para selección
+    clrf PORTA ;limpia puerto A, transitores
     call valores_division ;Realiza las divisiones
     call cargar_valor ;Carga los bits ya modificados al portc
     btfsc flag,0 ;Revisa si el display 1 está encendido
@@ -2705,7 +2728,7 @@ seleccionar_displays:
     goto loop
 
 display_2:
-    movf decenas,W ;Mover variable a W
+    movf decenas_1,w
     movwf PORTC ;Cargamos el valor al puerto c
     bsf PORTA,0 ;encedemos el display 2
     bcf flag,0 ;Apaga la bandera del display 1
@@ -2713,15 +2736,15 @@ display_2:
     goto loop
 
 display_1:
-    movf unidades,W ;Mover variable a W
+    movf unidades_1,w
     movwf PORTC ;Cargamos el valor al puerto c
     bsf PORTA,1 ;encedemos el display 1
-    bcf flag,4 ;Apaga la bandera del display 5
+    bcf flag,7 ;Apaga la bandera del display 8
     bsf flag,0 ;Enciende la bandera del display 1
     goto loop
 
 display_3:
-    movf decenas,W ;Mover variable a W
+    movf decenas_2,w
     movwf PORTC ;Cargamos el valor al puerto c
     bsf PORTA,2 ;encedemos el display 3
     bcf flag,1 ;Apaga la bandera del display 2
@@ -2729,7 +2752,7 @@ display_3:
     goto loop
 
 display_4:
-    movf unidades,W
+    movf unidades_2,w
     movwf PORTC ;Cargamos el valor al puerto c
     bsf PORTA,3 ;encedemos el display 4
     bcf flag,2 ;Apaga la bandera del display 3
@@ -2737,7 +2760,7 @@ display_4:
     goto loop
 
 display_5:
-    movf decenas,W ;Mover variable a W
+    movf decenas_3,w
     movwf PORTC ;Cargamos el valor al puerto c
     bsf PORTA,4 ;encedemos el display 5
     bcf flag,3 ;Apaga la bandera del display 4
@@ -2745,7 +2768,7 @@ display_5:
     goto loop
 
 display_6:
-    movf unidades,W ;Mover variable a W
+    movf unidades_3,w
     movwf PORTC ;Cargamos el valor al puerto c
     bsf PORTA,5 ;encedemos el display 5
     bcf flag,4 ;Apaga la bandera del display 4
@@ -2753,7 +2776,7 @@ display_6:
     goto loop
 
 display_7:
-    movf decenas,W ;Mover variable a W
+    movf decenas_4,W ;Mover variable a W
     movwf PORTC ;Cargamos el valor al puerto c
     bsf PORTA,6 ;encedemos el display 5
     bcf flag,5 ;Apaga la bandera del display 4
@@ -2761,7 +2784,7 @@ display_7:
     goto loop
 
 display_8:
-    movf unidades,W ;Mover variable a W
+    movf unidades_4,W ;Mover variable a W
     movwf PORTC ;Cargamos el valor al puerto c
     bsf PORTA,7 ;encedemos el display 5
     bcf flag,6 ;Apaga la bandera del display 4
@@ -2773,26 +2796,36 @@ cargar_valor:
     movf decenas, W ;Mueve la variable a W
     andlw 00001111B ;Agrega los bits menos significativos a w
     call tabla
-    movwf decenas ;Regresa los bits modificados
+    movwf decenas_1 ;Regresa los bits modificados
+    movf decenas_1,w
+    movwf decenas_2
+    movwf decenas_2,w
+    movf decenas_3
+    movwf decenas_3,w
+    movf decenas_4
+
     ;Convertir para display 1
     movf unidades, W ;Mueve la variable a W
     andlw 00001111B ;Agrega los bits menos significativos a w
     call tabla
-    movwf unidades ;Regresa los bits modificados
-
+    movwf unidades_1 ;Regresa los bits modificados
+    movf unidades_1,w
+    movwf unidades_2
+    movwf unidades_2,w
+    movf unidades_3
+    movwf unidades_3,w
+    movf unidades_4
     return
 
 valores_division:
-    movlw 10100000B ;w = 10 decimal
-    movwf cont_time,F
-    movf cont_time,w ;Mover variable a W
-    movwf var_A ;Mover W a la variable, A = 255
+    tiempo_vias ;valor inicial
     movlw 10
-    movwf var_B ;Variable B = 100
+    movwf var_B ;Variable B = 10
     movlw 0
     movwf decenas ;Variable decenas = 0
     movlw 0
     movwf unidades ;Variable unidades = 0
+
 
 division_decenas:
     movlw 10
@@ -2807,6 +2840,7 @@ division_decenas:
     movlw 10
     addwf var_A,F ;A = 10 + A, A = 255
 
+
 division_unidades:
     movlw 1
     movwf var_B ;B = 1
@@ -2817,6 +2851,10 @@ division_unidades:
     goto division_unidades ;Si no está encendida STATUS = 0, ir a unidades
     movlw 1
     subwf unidades,F ;Unidades = Unidades - 1
+
     return
+
+
+
 
     END

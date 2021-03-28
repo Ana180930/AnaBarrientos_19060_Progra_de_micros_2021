@@ -2529,6 +2529,7 @@ PSECT udata_bank0 ;memoria común, PSECT = sección del programa
     var_A: DS 1; 1 byte
     var_B: DS 1; 1 byte
     cont_porta: DS 1; 1 byte
+    TEMP_ACT: DS 1; 1 byte
 PSECT udata_shr ;memoria compartida, variables para interrupciones
     W_TEMP: DS 1 ;1 byte
     STATUS_TEMP: DS 1 ;1 byte
@@ -2572,7 +2573,7 @@ pop:
  t1_int:
     ;Valor inicial para el tmr1: TMR1H y TMR1L
     banksel PORTA
-    decf PORTA,F ;incrementar puerto A
+    incf PORTA,F ;incrementar puerto A
     movlw 0xC2
     movwf TMR1H
     movlw 0xF7
@@ -2749,7 +2750,10 @@ cargar_valor:
     return
 
 valores_division:
-    movf PORTA, w ;Mover puerto A a W
+    ;movf PORTA, w ;Mover puerto A a W
+    movlw 10
+    movwf TEMP_ACT
+    movf TEMP_ACT,W
     movwf var_A ;Mover W a la variable, A = 255
     movlw 10
     movwf var_B ;Variable B = 100

@@ -2531,6 +2531,7 @@ PSECT udata_bank0 ;memoria común, PSECT = sección del programa
     bits_low: DS 1; 1 byte
     bits_high: DS 1; 1 byte
     cont_porta: DS 1; 1 byte
+    TIME_ACT: DS 1; 1 byte
 PSECT udata_shr ;memoria compartida, variables para interrupciones
     W_TEMP: DS 1 ;1 byte
     STATUS_TEMP: DS 1 ;1 byte
@@ -2639,7 +2640,6 @@ main:
     clrf PORTA
     clrf flag ;Limpiar variable banderas
     bsf flag,1 ;encender bandera para display 1
-
 
     pull_ups ;Macros
     config_reloj
@@ -2762,8 +2762,10 @@ cargar_valor:
     return
 
 valores_division:
-    movf PORTA, w ;Mover puerto A a W
-    movwf var_A ;Mover W a la variable
+    movlw 10
+    movwf TIME_ACT
+    movf TIME_ACT,W
+    movwf var_A ;Mover W a la variable, A = 255
     movlw 100
     movwf var_B ;Variable B = 100
     movlw 0
@@ -2773,16 +2775,16 @@ valores_division:
     movlw 0
     movwf unidades ;Variable unidades = 0
 
-division_centenas:
+division_centenas: ;255 - 100
     movf var_B,W ;mover var_A a w
     subwf var_A,F ;var_A - var_B, el resultado lo guarda en A
     incf centenas,F ;incrementar centenas
     btfsc STATUS,0 ;Si está encendida STATUS = 1, ir a centenas
     goto division_centenas ;Si no está encendida STATUS = 0, ir a decenas
     movlw 1
-    subwf centenas,F ;Centenas = centenas - 1
+    subwf centenas,F ;Centenas = centenas - 1, es para que el valor sea 2
     movlw 100
-    addwf var_A,F ;A = 100 + A
+    addwf var_A,F ;A = 100 + A, A = 255
 
 division_decenas:
     movlw 10
@@ -2793,9 +2795,9 @@ division_decenas:
     btfsc STATUS,0 ;Si está encendida STATUS = 1, ir a decenas
     goto division_decenas ;Si no está encendida STATUS = 0, ir a decenas
     movlw 1
-    subwf decenas,F ;Centenas = centenas - 1
+    subwf decenas,F ;Decenas = decenas - 1, 25
     movlw 10
-    addwf var_A,F ;A = 10 + A
+    addwf var_A,F ;A = 10 + A, A = 255
 
 division_unidades:
     movlw 1

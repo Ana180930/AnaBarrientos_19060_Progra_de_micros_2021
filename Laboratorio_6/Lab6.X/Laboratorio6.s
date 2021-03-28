@@ -38,6 +38,7 @@ PSECT udata_bank0 ;memoria común, PSECT = sección del programa
     var_A:		    DS 1; 1 byte
     var_B:		    DS 1; 1 byte
     cont_porta:		    DS 1; 1 byte
+    TEMP_ACT:		    DS 1; 1 byte
 PSECT udata_shr ;memoria compartida, variables para interrupciones
     W_TEMP:	    DS 1 ;1 byte
     STATUS_TEMP:    DS 1 ;1 byte

@@ -40,6 +40,7 @@ PSECT udata_bank0 ;memoria común, PSECT = sección del programa
     bits_low:		    DS 1; 1 byte
     bits_high:		    DS 1; 1 byte
     cont_porta:		    DS 1; 1 byte
+    TIME_ACT:		    DS 1; 1 byte	    
 PSECT udata_shr ;memoria compartida, variables para interrupciones
     W_TEMP:	  DS 1 ;1 byte
     STATUS_TEMP:  DS 1 ;1 byte	 
@@ -270,7 +271,9 @@ cargar_valor:
     return
    
 valores_division:
-    movf    PORTA, w		    ;Mover puerto A a W
+    movlw   10
+    movwf   TIME_ACT
+    movf    TIME_ACT,W
     movwf   var_A		    ;Mover W a la variable, A = 255
     movlw   100			    
     movwf   var_B		    ;Variable B = 100
