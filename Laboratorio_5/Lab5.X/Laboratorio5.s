@@ -166,9 +166,9 @@ config_tmr0_temporizador:
     banksel	TRISA
     bcf		OPTION_REG, 5	  ;Reloj interno para el temporizador
     bcf		OPTION_REG, 3	  ;Preescaler para tmr0
-    bsf		PS2
-    bcf		PS1
-    bsf		PS0		  ;Prescaler de 64 (1 0 1)
+    bcf		PS2
+    bsf		PS1
+    bcf		PS0		  ;Prescaler de 8 (0 1 0)
     reinicio_tmr0
     return
 

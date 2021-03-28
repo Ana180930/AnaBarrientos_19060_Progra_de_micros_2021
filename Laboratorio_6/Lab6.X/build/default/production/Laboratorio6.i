@@ -2522,18 +2522,16 @@ CONFIG BOR4V=BOR40V
 
 PSECT udata_bank0 ;memoria común, PSECT = sección del programa
     variable_inc: DS 1;1 byte
-    cont_1s: DS 1;1 byte
-    cont_1ms: DS 1;1 byte
     unidades: DS 1;1 byte
     decenas: DS 1; 1 byte
     var_A: DS 1; 1 byte
     var_B: DS 1; 1 byte
     cont_porta: DS 1; 1 byte
-    TEMP_ACT: DS 1; 1 byte
 PSECT udata_shr ;memoria compartida, variables para interrupciones
     W_TEMP: DS 1 ;1 byte
     STATUS_TEMP: DS 1 ;1 byte
     flag: DS 1 ;8 banderas
+
 
 
 
@@ -2575,10 +2573,10 @@ pop:
     banksel PORTA
     incf PORTA,F ;incrementar puerto A
     movlw 0xC2
-    movwf TMR1H
+    movwf TMR1H ;Le carga 1100 0010 a los bits más significativos
     movlw 0xF7
-    movwf TMR1L
-    bcf PIR1, 0
+    movwf TMR1L ;Le carga 1111 0111 a los bits menos significativos
+    bcf PIR1, 0 ;limpia la bandera del timer1
     goto isr
 
 t2_int:
@@ -2586,6 +2584,7 @@ t2_int:
     banksel PORTE
     incf PORTE,F ;incrementa el puerto E
     bcf ((PIR1) and 07Fh), 1 ;apaga la bandera del timer 2
+    bsf flag,3 ;enciende una bandera del timer2
     goto isr
 
 t0_int:
@@ -2646,7 +2645,9 @@ main:
     call config_int_tmr0
 ;--------------------Loop principal----------------
 loop:
-    btfsc flag,0
+    btfsc flag,3
+    call apagar_displays
+    ;btfsc flag,0
     goto seleccionar_displays
     goto loop
 
@@ -2750,10 +2751,7 @@ cargar_valor:
     return
 
 valores_division:
-    ;movf PORTA, w ;Mover puerto A a W
-    movlw 10
-    movwf TEMP_ACT
-    movf TEMP_ACT,W
+    movf PORTA, w ;Mover puerto A a W
     movwf var_A ;Mover W a la variable, A = 255
     movlw 10
     movwf var_B ;Variable B = 100
@@ -2785,5 +2783,9 @@ division_unidades:
     goto division_unidades ;Si no está encendida STATUS = 0, ir a unidades
     movlw 1
     subwf unidades,F ;Unidades = Unidades - 1
+    return
+
+apagar_displays:
+    clrf PORTE
     return
 END

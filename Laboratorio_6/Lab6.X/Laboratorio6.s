@@ -31,14 +31,11 @@ CONFIG BOR4V=BOR40V // Reinicio abajo de 4V, (BOR21V=2.1V)
     
 PSECT udata_bank0 ;memoria común, PSECT = sección del programa
     variable_inc:	    DS 1;1 byte
-    cont_1s:		    DS 1;1 byte
-    cont_1ms:		    DS 1;1 byte
     unidades:		    DS 1;1 byte
     decenas:		    DS 1; 1 byte
     var_A:		    DS 1; 1 byte
     var_B:		    DS 1; 1 byte
     cont_porta:		    DS 1; 1 byte
-    TEMP_ACT:		    DS 1; 1 byte
 PSECT udata_shr ;memoria compartida, variables para interrupciones
     W_TEMP:	    DS 1 ;1 byte
     STATUS_TEMP:    DS 1 ;1 byte
@@ -46,6 +43,7 @@ PSECT udata_shr ;memoria compartida, variables para interrupciones
     #define	    flag_sel  0
     #define	    flag_dis1 1
     #define	    flag_dis2 2
+    #define	    flag_timer2 3
     
 PSECT resVect, class=CODE, abs, delta=2 ;abs = posición absoluta en donde se 
 ;------------------ vector resest -----------------
@@ -83,11 +81,11 @@ pop:
     ;Valor inicial para el tmr1: TMR1H y TMR1L
     banksel	PORTA
     incf	PORTA,F	    ;incrementar puerto A
-    movlw	0xC2
-    movwf	TMR1H
+    movlw	0xC2	
+    movwf	TMR1H	    ;Le carga 1100 0010 a los bits más significativos
     movlw	0xF7
-    movwf	TMR1L
-    bcf		PIR1, 0  
+    movwf	TMR1L	    ;Le carga 1111 0111 a los bits menos significativos
+    bcf		PIR1, 0	    ;limpia la bandera del timer1
     goto	isr
 
 t2_int:
@@ -95,6 +93,7 @@ t2_int:
     banksel	PORTE
     incf	PORTE,F	    ;incrementa el puerto E
     bcf		TMR2IF	    ;apaga la bandera del timer 2
+    bsf		flag,flag_timer2    ;enciende una bandera del timer2
     goto	isr
 
 t0_int:
@@ -155,8 +154,10 @@ main:
     call    config_int_tmr0
 ;--------------------Loop principal----------------
 loop:  
+    btfsc	flag,flag_timer2
+    call	apagar_displays
     btfsc	flag,flag_sel
-    goto	seleccionar_displays
+    goto	seleccionar_displays	
     goto	loop
       
 ;--------------------sub rutinas----------------------------
@@ -216,7 +217,7 @@ config_int_tmr0:
     bsf	    T0IE	;Habilitar interrupción tmr0
     bcf	    T0IF	;Limpiar bandera del tmr0
     return
-  
+      
 seleccionar_displays:
     bcf	    flag,flag_sel	;apaga la bandera para selección
     clrf    PORTD		;limpia puerto d
@@ -291,5 +292,9 @@ division_unidades:
     goto    division_unidades	 ;Si no está encendida STATUS = 0, ir a unidades
     movlw   1
     subwf   unidades,F		 ;Unidades = Unidades - 1
+    return
+
+apagar_displays:
+    clrf    PORTE
     return
 END   

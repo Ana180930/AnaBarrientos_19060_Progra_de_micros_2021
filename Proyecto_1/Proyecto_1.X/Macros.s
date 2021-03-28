@@ -21,7 +21,7 @@ endm
 ;-------------------Configuracion del reinicio del tmr0------------------------
 reinicio_tmr0 macro
 banksel   PORTA	    ;Va al banco 0 en donde se encuentra PORTA    
-    movlw   225	    ;Valor inicial para el tmr0, tiempo de 1ms
+    movlw   225	    ;Valor inicial para el tmr0, tiempo de 250ms
     movwf   TMR0
     bcf	    INTCON, 2 ;Limpia la bandera 
     
@@ -47,5 +47,6 @@ tiempo_vias macro
     movwf   TIME_ACT
     movf    TIME_ACT,W
     movwf   var_A		    ;A = 4
+    
     endm
     
