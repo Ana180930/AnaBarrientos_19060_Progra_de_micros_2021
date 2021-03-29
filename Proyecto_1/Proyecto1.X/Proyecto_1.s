@@ -1,5 +1,5 @@
 ;******************************************************************************
-;Archivo: Proyecto1.s
+;Archivo: Proyecto_1.s
 ;Dispositivo: PIC16F887
 ;Autor: Ana Barrientos
 ;Carnet: 19060
@@ -9,7 +9,7 @@
 PROCESSOR 16F887 // Para indicar que microprocesador es 
     
 #include <xc.inc> ;Sirve para definir los registros
-#include "Macros.s"
+#include "Macros_proyecto.s"
     
 ;Configuration word 1
 CONFIG FOSC=INTRC_NOCLKOUT // Oscilador interno sin salidas
@@ -30,22 +30,14 @@ CONFIG BOR4V=BOR40V // Reinicio abajo de 4V, (BOR21V=2.1V)
 
     
 PSECT udata_bank0 ;memoria común, PSECT = sección del programa
-    unidades:		    DS 1
-    decenas:		    DS 1
-    var_A:		    DS 1; 1 byte
-    var_B:		    DS 1; 1 byte
-    TIME_ACT:		    DS 1; 1 byte
-    TIME_TEMP:		    DS 1; 1 byte
-    Tv1:		    DS 1; 1 byte
-    Tv2:		    DS 1; 1 byte
-    Tv3:		    DS 1; 1 byte
-    verde_t:		    DS 1; 1 byte
-    amarillo:		    DS 1; 1 byte
+    unidades:		    DS 1;1 byte
+    decenas:		    DS 1;1 byte
+    var_A:		    DS 1;1 byte
+    var_B:		    DS 1;1 byte
+    cont_porta:		    DS 1;1 byte
 PSECT udata_shr ;memoria compartida, variables para interrupciones
     W_TEMP:	    DS 1 ;1 byte
-    STATUS_TEMP:    DS 1 ;1 byte	 
-    cont_1ms:	    DS 1
-    cont_1s:	    DS 1
+    STATUS_TEMP:    DS 1 ;1 byte
     flag_sel:	    DS 1 
     #define	    sel_disp  0
     flag:	    DS 1 ;8 banderas
@@ -57,6 +49,7 @@ PSECT udata_shr ;memoria compartida, variables para interrupciones
     #define	    flag_dis6 5
     #define	    flag_dis7 6
     #define	    flag_dis8 7
+      
 PSECT resVect, class=CODE, abs, delta=2 ;abs = posición absoluta en donde se 
 ;------------------ vector resest -----------------
 ORG 00h ;posición 0000h para el reset, ORG = ubicación dentro de un sector
@@ -75,10 +68,10 @@ push:
     movwf   STATUS_TEMP	    ;Muevo el STATUS al reves a STATUS temporal
 
 isr:			    ;Rutina de interrupción		    
-    btfsc   T0IF
-    goto    t0_int
-    ;btfsc   TMR1IF
-    ;goto    t1_int
+    btfsc   TMR1IF
+    goto    t1_int
+    ;btfsc   T0IF
+    ;goto    t0_int
 pop:
     swapf   STATUS_TEMP,W   ;Regresa registro STATUS original a W
     movwf   STATUS	    ;Mueve w al registro STATUS.
@@ -86,25 +79,23 @@ pop:
     swapf   W_TEMP,W	    ;Lo regresa al original y lo guarda en W
     retfie		    ;Regreso de la interrupcion
 
- ;-------------------------Subrutinas de interrupción-------------------- 
+ ;-------------------------Subrutinas de interrupción--------------------  
+t1_int:			    ;Valor de 1s para decrementar los semáforos
+    banksel	PORTA
+    incf	PORTA,F	    ;incrementar puerto A
+    movlw	0xC2	
+    movwf	TMR1H	    ;Le carga 1100 0010 a los bits más significativos
+    movlw	0xF7
+    movwf	TMR1L	    ;Le carga 1111 0111 a los bits menos significativos
+    bcf		PIR1, 0	    ;limpia la bandera del timer1
+    goto	isr
+    
 t0_int:
-    movlw	225		;valor de 1ms
+    movlw	225		;valor de 1ms para multiplexado
     movf	TMR0		;Valor inicial para el tmr0
     bcf		T0IF		;Clear inicial para la bandera
-    bsf		flag_sel,sel_disp   ;Se pone en 1 cuando hay interrupción
-    goto	isr 
-
-;t1_int:
-;    ;Valor inicial para el tmr1: TMR1H y TMR1L
-;    banksel	PORTA
-;    ;decf   	TIME_ACT,F  ;incrementar puerto A
-;    bsf		PORTD,1
-;    movlw	0xC2	
-;    movwf	TMR1H	    ;Le carga 1100 0010 a los bits más significativos
-;    movlw	0xF7
-;    movwf	TMR1L	    ;Le carga 1111 0111 a los bits menos significativos
-;    bcf		PIR1, 0	    ;limpia la bandera del timer1
-;    goto	isr
+    bsf		flag,flag_sel   ;Se pone en 1 cuando hay interrupción
+    goto	isr
     
 PSECT code, delta=2, abs ; delta = tamaño de cada instrucción
 ORG 100h ;posición para el código 
@@ -113,7 +104,7 @@ tabla:
     clrf    PCLATH
     bsf	    PCLATH,0	;Posición 01 00h
     andlw   00001111B	;Para que no se pase de los 4 bits 
-    addwf   PCL		;PCLATH = 01, PCL = 03h + 1h + W   
+    addwf   PCL		;PCLATH = 01, PCL = 03h + 1h + W = 0   
     retlw   00111111B	;Display = 0
     retlw   00000110B	;Display = 1
     retlw   01011011B	;Display = 2
@@ -136,36 +127,37 @@ main:
     clrf    PORTC
     clrf    PORTA
     clrf    PORTD
-    bsf	    PORTB, 0
-    bsf	    PORTB, 1
-    bsf	    PORTB, 2
-    bcf	    PORTB, 3
-    bcf	    PORTB, 4
-    bcf	    PORTB, 5
-    bcf	    PORTB, 7
-    bcf	    PORTE, 0
+    bcf	    PORTE,0
+    bcf	    PORTB,3
+    bcf	    PORTB,4
+    bcf	    PORTB,5
+    bcf	    PORTB,7
+    bsf	    PORTB,0
+    bsf	    PORTB,1
+    bsf	    PORTB,2
+    
     banksel PORTA	;De regreso a banco 0
     clrf    PORTA
     clrf    PORTB
     clrf    PORTC	;Para un clear inicial en los pines
     clrf    PORTD
     clrf    PORTE
+    clrf    flag
     clrf    flag_sel
-    clrf    flag		;Limpiar variable banderas
     bsf	    flag,flag_dis1	;encender bandera para display 1
     config_reloj
-    call    config_tmr0_temporizador
-    call    config_int_tmr0
-    ;call    config_tmr1_temporizador
-    ;call    config_int_tmr1
-;--------------------Loop principal------------------------ 
+    call    config_tmr1_temporizador
+    ;call    config_tmr0_temporizador
+    call    config_int_tmr1
+    ;call    config_int_tmr0
+
+;-----------------------------Loop principal------------------------------
 loop:  
-    btfsc	flag_sel,sel_disp
-    goto	seleccionar_displays
+    ;btfsc	flag_sel,sel_disp
+    ;goto	seleccionar_displays
     goto	loop
-      
-;--------------------sub rutinas----------------------------  
-config_tmr0_temporizador:
+;------------------------------sub rutinas---------------------------------
+ config_tmr0_temporizador:	  ;Multiplexado de 1ms
     banksel	TRISA
     bcf		OPTION_REG, 5	  ;Reloj interno para el temporizador
     bcf		OPTION_REG, 3	  ;Preescaler para tmr0
@@ -173,13 +165,8 @@ config_tmr0_temporizador:
     bcf		PS1
     bsf		PS0		  ;Prescaler de 4 (0 0 1)
     reinicio_tmr0
-    return
-    
-config_int_tmr0:
-    bsf	    T0IE	;Habilitar interrupción tmr0
-    bcf	    T0IF	;Limpiar bandera del tmr0
     return   
-
+    
 config_tmr1_temporizador:
     banksel	T1CON	    ;Banco 0
     bcf		T1CON,1	    ;Oscilador interno 
@@ -193,8 +180,13 @@ config_tmr1_temporizador:
     movlw	0xF7
     movwf	TMR1L	
     bcf		PIR1,0	    ;Limpiar bandera del timer 1
-    return
+    return	
 
+config_int_tmr0:
+    bsf	    T0IE	;Habilitar interrupción tmr0
+    bcf	    T0IF	;Limpiar bandera del tmr0
+    return
+    
 config_int_tmr1:
     banksel	PIE1	    ;Banco 1
     bsf		PIE1,0	    ;Habilitar la interrupción del tmr1
@@ -202,81 +194,5 @@ config_int_tmr1:
     bsf		INTCON,7    ;Habilita las interrupciones globales
     return
     
-seleccionar_displays:
-    bcf	    flag_sel,sel_disp	;apaga la bandera para selección
-    clrf    PORTA		;limpia puerto d
-    call    valores_division	;Realiza las divisiones
-    call    cargar_valor	;Carga los bits ya modificados al portc	
-    btfsc   flag,flag_dis1	;Revisa si el display 1 está encendido
-    goto    display_2		;si está encendido,se enciende display 2
-    btfsc   flag,flag_dis2	;Revisa si el display 2 está encendido
-    goto    display_1		;Si está enciendida, se enciende display 1
-    goto    loop
     
-display_2:
-    movf    decenas,W		;Mover variable a W
-    movwf   PORTC		;Cargamos el valor al puerto c
-    bsf	    PORTA,0		;encedemos el display 2
-    bcf	    flag,flag_dis1	;Apaga la bandera del display 1
-    bsf	    flag,flag_dis2	;Enciende la bandera display 2
-    goto    loop
-    
-display_1:
-    movf    unidades,W		;Mover variable a W
-    movwf   PORTC		;Cargamos el valor al puerto c
-    bsf	    PORTA,1		;encedemos el display 1
-    bcf	    flag,flag_dis2	;Apaga la bandera del display 2
-    bsf	    flag,flag_dis1	;Enciende la bandera del display 1
-    goto    loop 
-
-cargar_valor: 
-   ;Convertir para display 2
-    movf    decenas, W		;Mueve la variable a W
-    andlw   00001111B		;Agrega los bits menos significativos a w
-    call    tabla
-    movwf   decenas		;Regresa los bits modificados
-    ;Convertir para display 1
-    movf    unidades, W		;Mueve la variable a W
-    andlw   00001111B		;Agrega los bits menos significativos a w
-    call    tabla
-    movwf   unidades		;Regresa los bits modificados
-    
-    return
-    
-valores_division:
-    tiempo_vias
-    movlw   10			    
-    movwf   var_B		    ;Variable B = 100
-    movlw   0		
-    movwf   decenas		    ;Variable decenas = 0    
-    movlw   0
-    movwf   unidades		    ;Variable unidades = 0
-    
-division_decenas:
-    movlw   10
-    movwf   var_B		 ;B = 10
-    movf    var_B,W		 ;mover var_A a w 
-    subwf   var_A,F		 ;var_A - var_B, el resultado lo guarda en A		    
-    incf    decenas,F		 ;incrementar decenas 
-    btfsc   STATUS,0		 ;Si está encendida STATUS = 1, ir a decenas
-    goto    division_decenas	 ;Si no está encendida STATUS = 0, ir a decenas
-    movlw   1
-    subwf   decenas,F		 ;Decenas = decenas - 1, 25
-    movlw   10
-    addwf   var_A,F		 ;A = 10 + A, A = 255
-
-division_unidades:
-    movlw   1
-    movwf   var_B		 ;B = 1
-    movf    var_B,W		 ;mover var_A a w 
-    subwf   var_A,F		 ;var_A - var_B, el resultado lo guarda en A	    
-    incf    unidades,F		 ;incrementar variable unidades	 
-    btfsc   STATUS,0		 ;Si está encendida STATUS = 1, ir a unidades
-    goto    division_unidades	 ;Si no está encendida STATUS = 0, ir a unidades
-    movlw   1
-    subwf   unidades,F		 ;Unidades = Unidades - 1
-    return    
-
-  
-    END
-     
+END 
