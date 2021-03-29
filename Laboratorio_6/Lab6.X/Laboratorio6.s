@@ -225,8 +225,8 @@ config_int_tmr2:
     return
 
 config_int_tmr0:
-    bsf	    T0IE	;Habilitar interrupción tmr0
-    bcf	    T0IF	;Limpiar bandera del tmr0
+    bsf		T0IE	    ;Habilitar interrupción tmr0
+    bcf		T0IF	    ;Limpiar bandera del tmr0
     return
       
 seleccionar_displays:
