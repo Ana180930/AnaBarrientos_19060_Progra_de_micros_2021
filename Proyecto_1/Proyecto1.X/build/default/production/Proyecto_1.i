@@ -2496,14 +2496,13 @@ portb_int macro
 
 endm
 
-time_decrementar macro
-    movlw 10
-    movwf TV1 ;Valor inicial TV1 = 10
-    movlw 6 ;W = 6
-    subwf TV1,W ;TV1 - 6 = 4s , W = 4
-    movwf verde_v1 ;verde_v1 = 4
-
-endm
+;tiempos_vias macro
+; movlw 10
+; movwf TV1 ;Valor inicial TV1 = 10
+; movlw 6 ;W = 6
+; subwf TV1,W ;TV1 - 6 = 4s , W = 4
+; movwf verde_v1
+;endm
 # 12 "Proyecto_1.s" 2
 
 ;Configuration word 1
@@ -2552,8 +2551,9 @@ PSECT udata_shr ;memoria compartida, variables para interrupciones
     STATUS_TEMP: DS 1 ;1 byte
     flag_sel: DS 1
 
+
     flag: DS 1 ;8 banderas
-# 69 "Proyecto_1.s"
+# 70 "Proyecto_1.s"
 PSECT resVect, class=CODE, abs, delta=2 ;abs = posición absoluta en donde se
 ;------------------ vector resest -----------------
 ORG 00h ;posición 0000h para el reset, ORG = ubicación dentro de un sector
@@ -2571,6 +2571,8 @@ push:
 isr: ;Rutina de interrupción
     btfsc ((INTCON) and 07Fh), 2
     goto t0_int
+    btfsc ((PIR1) and 07Fh), 0
+    goto t1_int
 pop:
     swapf STATUS_TEMP,W ;Regresa registro STATUS original a W
     movwf STATUS ;Mueve w al registro STATUS.
@@ -2584,6 +2586,20 @@ t0_int:
     movwf TMR0 ;Valor inicial para el tmr0
     bcf ((INTCON) and 07Fh), 2 ;Clear inicial para la bandera
     goto isr
+
+t1_int:
+    ;Valor inicial para el tmr1: TMR1H y TMR1L
+    banksel PORTA
+    decf verde_v1,F
+
+    ;bsf flag_sel,1
+    movlw 0xC2
+    movwf TMR1H ;Le carga 1100 0010 a los bits más significativos
+    movlw 0xF7
+    movwf TMR1L ;Le carga 1111 0111 a los bits menos significativos
+    bcf PIR1, 0 ;limpia la bandera del timer1
+    goto isr
+
 PSECT code, delta=2, abs ; delta = tamaño de cada instrucción
 ORG 100h ;posición para el código
 
@@ -2631,16 +2647,21 @@ main:
     clrf PORTE
     clrf flag ;Limpiar variable banderas
     clrf TV1
+    clrf var_dec
     clrf verde_v1
     clrf flag_sel
     clrf var_A
     clrf var_B
     bsf flag,0
+    call tiempos_vias
     config_reloj
+    call config_tmr1_temporizador
+    call config_int_tmr1
     call config_tmr0_temporizador
     call config_int_tmr0
 ;-----------------------------Loop principal-----------------------------
 loop:
+    call modo_1
     btfsc flag_sel,0
     goto seleccionar_displays
     goto loop
@@ -2656,10 +2677,32 @@ config_tmr0_temporizador:
     reinicio_tmr0
     return
 
-    config_int_tmr0:
-    bsf INTCON, 7 ;Habilitar todas las interrupciones
+config_int_tmr0:
+    ;bsf INTCON, 7 ;Habilitar todas las interrupciones
     bsf ((INTCON) and 07Fh), 5 ;Habilitar interrupción tmr0
     bcf ((INTCON) and 07Fh), 2 ;Limpiar bandera del tmr0
+    return
+
+config_tmr1_temporizador:
+    banksel T1CON ;Banco 0
+    bcf T1CON,1 ;Oscilador interno
+    bsf T1CON,5
+    bsf T1CON,4 ;Prescaler 8 (1 1)
+    bsf T1CON,0 ;Bit on activado
+    clrf TMR1L
+    clrf TMR1H ;Limpiar los registros
+    movlw 0xC2 ;Valor inicial para el TMR1
+    movwf TMR1H
+    movlw 0xF7
+    movwf TMR1L
+    bcf PIR1,0 ;Limpiar bandera del timer 1
+    return
+
+config_int_tmr1:
+    banksel PIE1 ;Banco 1
+    bsf PIE1,0 ;Habilitar la interrupción del tmr1
+    bsf INTCON,6 ;Habilita las interrupciones perifericas
+    bsf INTCON,7 ;Habilita las interrupciones globales
     return
 
 seleccionar_displays:
@@ -2704,7 +2747,7 @@ display_1:
     movf var_display_1,W ;Mover variable cargada a W
     movwf PORTC ;Cargamos el valor al puerto c
     bsf PORTA,1 ;encedemos el display 1
-    bcf flag,5 ;Apaga la bandera del display 2
+    bcf flag,7 ;Apaga la bandera del display 2
     bsf flag,0 ;Enciende la bandera del display 1
     goto loop
 display_3:
@@ -2752,22 +2795,9 @@ display_8:
     goto loop
 
 valores_division:
-    time_decrementar
+    ;time_decrementar
     movf verde_v1,W
     movwf var_A ;Mover W a la variable, A = 4
-    movlw 0
-    movwf decenas_v1 ;Variable decenas = 0
-    movlw 0
-    movwf unidades_v1 ;Variable unidades = 0
-    movlw 0
-    movwf decenas_v2 ;Variable decenas = 0
-    movlw 0
-    movwf unidades_v2 ;Variable unidades = 0
-    movlw 0
-    movwf decenas_v3 ;Variable decenas = 0
-    movlw 0
-    movwf unidades_v3 ;Variable unidades = 0
-
 
 division_decenas_v1:
     movlw 10 ;mover 10 a w
@@ -2780,7 +2810,7 @@ division_decenas_v1:
     movlw 10
     addwf var_A,F ;A = 10 + A, A = 255, lo guarda en W = 10
     ;Convertir para display 2
-    movf decenas_v1, W ;Mueve la variable a W
+    movf decenas_v1,W
     andlw 00001111B ;Agrega los bits menos significativos a w
     call tabla
     movwf var_display_2 ;Regresa los bits modificados
@@ -2887,4 +2917,33 @@ division_unidades_v4:
     call tabla
     movwf var_display_8 ;Regresa los bits modificados
     return
+
+modo_1:
+    ;-----------------Display gris---------------------------
+    bcf PORTA,6 ;apagar transistor display 7
+    bcf PORTA,7 ;apagar transistor display 8
+    ;------------------Leds vias------------------------------
+    movlw 01001100B
+    movwf PORTD
+    ;--------------------Displays-----------------------------
+    clrf var_display_1 ;limpiar variables que muestran el valor
+    clrf var_display_2
+    clrf var_display_3
+    clrf var_display_4
+    clrf var_display_5
+    clrf var_display_6
+    ;call tiempos_vias
+    return
+
+tiempos_vias:
+    movlw 10
+    movwf TV1 ;Valor inicial TV1 = 10
+    movlw 6 ;W = 6
+    subwf TV1,w ;TV1 - 6 = 4s , W = 4
+    movwf verde_v1
+
+    return
+
+
+
 END

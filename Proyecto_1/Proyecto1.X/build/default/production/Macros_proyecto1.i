@@ -39,11 +39,10 @@ portb_int macro
 
 endm
 
-time_decrementar macro
-    movlw 10
-    movwf TV1 ;Valor inicial TV1 = 10
-    movlw 6 ;W = 6
-    subwf TV1,W ;TV1 - 6 = 4s , W = 4
-    movwf verde_v1 ;verde_v1 = 4
-
-endm
+;tiempos_vias macro
+; movlw 10
+; movwf TV1 ;Valor inicial TV1 = 10
+; movlw 6 ;W = 6
+; subwf TV1,W ;TV1 - 6 = 4s , W = 4
+; movwf verde_v1
+;endm
