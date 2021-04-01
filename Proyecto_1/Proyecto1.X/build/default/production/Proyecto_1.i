@@ -2524,11 +2524,23 @@ CONFIG LVP=ON
 CONFIG WRT=OFF
 CONFIG BOR4V=BOR40V
 
-PSECT udata_bank0 ;memoria común, PSECT = sección del programa
-    unidades: DS 1;1 byte
-    decenas: DS 1;1 byte
+PSECT udata_bank0 ;PSECT = sección del programa
+    unidades_v1: DS 1;1 byte
+    decenas_v1: DS 1;1 byte
+    unidades_v2: DS 1;1 byte
+    decenas_v2: DS 1;1 byte
+    unidades_v3: DS 1;1 byte
+    decenas_v3: DS 1;1 byte
+    unidades_v4: DS 1;1 byte
+    decenas_v4: DS 1;1 byte
     var_display_1: DS 1;1 byte
     var_display_2: DS 1;1 byte
+    var_display_3: DS 1;1 byte
+    var_display_4: DS 1;1 byte
+    var_display_5: DS 1;1 byte
+    var_display_6: DS 1;1 byte
+    var_display_7: DS 1;1 byte
+    var_display_8: DS 1;1 byte
     var_dec: DS 1;1 byte
     var_A: DS 1;1 byte
     var_B: DS 1;1 byte
@@ -2544,7 +2556,7 @@ PSECT udata_shr ;memoria compartida, variables para interrupciones
     flag_sel: DS 1
 
     flag: DS 1 ;8 banderas
-# 60 "Proyecto_1.s"
+# 72 "Proyecto_1.s"
 PSECT resVect, class=CODE, abs, delta=2 ;abs = posición absoluta en donde se
 ;------------------ vector resest -----------------
 ORG 00h ;posición 0000h para el reset, ORG = ubicación dentro de un sector
@@ -2579,8 +2591,6 @@ t0_int:
     movf TMR0 ;Valor inicial para el tmr0
     bcf ((INTCON) and 07Fh), 2 ;Clear inicial para la bandera
     goto isr
-
-
 
 PSECT code, delta=2, abs ; delta = tamaño de cada instrucción
 ORG 100h ;posición para el código
@@ -2629,7 +2639,11 @@ main:
     clrf PORTD
     clrf PORTE
     clrf flag ;Limpiar variable banderas
+    clrf TV1
+    clrf verde_v1
     clrf flag_sel
+    clrf var_A
+    clrf var_B
     bsf flag,0
     config_reloj
     call config_tmr0_temporizador
@@ -2660,13 +2674,31 @@ config_tmr0_temporizador:
 seleccionar_displays:
     bcf flag_sel,0 ;apaga la bandera para selección
     clrf PORTA ;limpia puerto d
+    clrf decenas_v1
+    clrf unidades_v1
+    clrf decenas_v2
+    clrf unidades_v2
+    clrf decenas_v3
+    clrf unidades_v3
+    clrf decenas_v4
+    clrf unidades_v4
     call valores_division ;Realiza las divisiones para unidades/decenas
-    call cargar_valor ;Carga los bits ya modificados al portc
     btfsc flag,0 ;Revisa si el display 1 está encendido
     goto display_2 ;si está encendido,se enciende display 2
     btfsc flag,1 ;Revisa si el display 2 está encendido
-    goto display_1 ;Si está enciendida, se enciende display 1
-
+    goto display_3 ;si está encendido,se enciende display 2
+    btfsc flag,2 ;Revisa si el display 2 está encendido
+    goto display_4 ;si está encendido,se enciende display 2
+    btfsc flag,3 ;Revisa si el display 2 está encendido
+    goto display_5 ;si está encendido,se enciende display 2
+    btfsc flag,4 ;Revisa si el display 2 está encendido
+    goto display_6 ;si está encendido,se enciende display 2
+    btfsc flag,5 ;Revisa si el display 2 está encendido
+    goto display_1 ;si está encendido,se enciende display 2
+    ;btfsc flag,6 ;Revisa si el display 2 está encendido
+    ;goto display_8 ;si está encendido,se enciende display 2
+    ;btfsc flag,7 ;Revisa si el display 2 está encendido
+    ;goto display_1 ;si está encendido,se enciende display 2
     goto loop
 
 display_2:
@@ -2681,57 +2713,163 @@ display_1:
     movf var_display_1,W ;Mover variable cargada a W
     movwf PORTC ;Cargamos el valor al puerto c
     bsf PORTA,1 ;encedemos el display 1
-    bcf flag,1 ;Apaga la bandera del display 2
+    bcf flag,5 ;Apaga la bandera del display 2
     bsf flag,0 ;Enciende la bandera del display 1
     goto loop
 
-cargar_valor:
-   ;Convertir para display 2
-    movf decenas, W ;Mueve la variable a W
-    andlw 00001111B ;Agrega los bits menos significativos a w
-    call tabla
-    movwf var_display_2 ;Regresa los bits modificados
-    ;Convertir para display 1
-    movf unidades, W ;Mueve la variable a W
-    andlw 00001111B ;Agrega los bits menos significativos a w
-    call tabla
-    movwf var_display_1 ;Regresa los bits modificados
+display_3:
+    movf var_display_3,W ;Mover variable cargada a W
+    movwf PORTC ;Cargamos el valor al puerto c
+    bsf PORTA,2 ;encedemos el display 2
+    bcf flag,1 ;Apaga la bandera del display 1
+    bsf flag,2 ;Enciende la bandera display 2
+    goto loop
 
-    return
+display_4:
+    movf var_display_4,W ;Mover variable cargada a W
+    movwf PORTC ;Cargamos el valor al puerto c
+    bsf PORTA,3 ;encedemos el display 2
+    bcf flag,2 ;Apaga la bandera del display 1
+    bsf flag,3 ;Enciende la bandera display 2
+    goto loop
+
+display_5:
+    movf var_display_5,W ;Mover variable cargada a W
+    movwf PORTC ;Cargamos el valor al puerto c
+    bsf PORTA,4 ;encedemos el display 2
+    bcf flag,3 ;Apaga la bandera del display 1
+    bsf flag,4 ;Enciende la bandera display 2
+    goto loop
+
+display_6:
+    movf var_display_6,W ;Mover variable cargada a W
+    movwf PORTC ;Cargamos el valor al puerto c
+    bsf PORTA,5 ;encedemos el display 2
+    bcf flag,4 ;Apaga la bandera del display 1
+    bsf flag,5 ;Enciende la bandera display 2
+    goto loop
+
+display_7:
+    movf var_display_7,W ;Mover variable cargada a W
+    movwf PORTC ;Cargamos el valor al puerto c
+    bsf PORTA,6 ;encedemos el display 2
+    bcf flag,5 ;Apaga la bandera del display 1
+    bsf flag,6 ;Enciende la bandera display 2
+    goto loop
+
+display_8:
+    movf var_display_8,W ;Mover variable cargada a W
+    movwf PORTC ;Cargamos el valor al puerto c
+    bsf PORTA,7 ;encedemos el display 2
+    bcf flag,6 ;Apaga la bandera del display 1
+    bsf flag,7 ;Enciende la bandera display 2
+    goto loop
 
 valores_division:
     time_decrementar
     movf verde_v1,W
-    movwf var_A ;Mover W a la variable, A = 255
-    movlw 10
-    movwf var_B ;Variable B = 10
+    movwf var_A ;Mover W a la variable, A = 4
     movlw 0
-    movwf decenas ;Variable decenas = 0
+    movwf decenas_v1 ;Variable decenas = 0
     movlw 0
-    movwf unidades ;Variable unidades = 0
+    movwf unidades_v1 ;Variable unidades = 0
+    movlw 0
+    movwf decenas_v2 ;Variable decenas = 0
+    movlw 0
+    movwf unidades_v2 ;Variable unidades = 0
+    movlw 0
+    movwf decenas_v3 ;Variable decenas = 0
+    movlw 0
+    movwf unidades_v3 ;Variable unidades = 0
 
-division_decenas:
-    movf var_B,W ;mover var_A a w
-    subwf var_A,F ;var_A - var_B, el resultado lo guarda en A
-    incf decenas,F ;incrementar decenas
+
+division_decenas_v1:
+    movlw 10 ;mover 10 a w
+    subwf var_A,F ;var_A - 10, 4 - 10
+    incf decenas_v1,F ;incrementar decenas
     btfsc STATUS,0 ;Si está encendida STATUS = 1, ir a decenas
-    goto division_decenas ;Si no está encendida STATUS = 0, ir a decenas
+    goto division_decenas_v1 ;Si no está encendida STATUS = 0, ir a decenas
     movlw 1
-    subwf decenas,F ;Decenas = decenas - 1, 25
+    subwf decenas_v1,F ;Decenas = decenas - 1, 25
     movlw 10
-    addwf var_A,F ;A = 10 + A, A = 255
+    addwf var_A,F ;A = 10 + A, A = 255, lo guarda en W = 10
+    ;Convertir para display 2
+    movf decenas_v1, W ;Mueve la variable a W
+    andlw 00001111B ;Agrega los bits menos significativos a w
+    call tabla
+    movwf var_display_2 ;Regresa los bits modificados
 
-division_unidades:
+division_unidades_v1:
     movlw 1
-    movwf var_B ;B = 1
-    movf var_B,W ;mover var_A a w
-    subwf var_A,F ;var_A - var_B, el resultado lo guarda en A
-    incf unidades,F ;incrementar variable unidades
+    subwf var_A,F ;var_A - 1, el resultado lo guarda en A
+    incf unidades_v1,F ;incrementar variable unidades
     btfsc STATUS,0 ;Si está encendida STATUS = 1, ir a unidades
-    goto division_unidades ;Si no está encendida STATUS = 0, ir a unidades
+    goto division_unidades_v1 ;Si no está encendida STATUS = 0, ir a unidades
     movlw 1
-    subwf unidades,F ;Unidades = Unidades - 1
+    subwf unidades_v1,W ;Unidades = Unidades - 1
+    andlw 00001111B ;Agrega los bits menos significativos a w
+    call tabla
+    movwf var_display_1 ;Regresa los bits modificados
+
+division_decenas_v2:
+    movf verde_v1,W
+    movwf var_A ;Mover W a la variable, A = 4
+    movlw 10 ;mover 10 a w
+    subwf var_A,F ;var_A - 10, 4 - 10
+    incf decenas_v2,F ;incrementar decenas
+    btfsc STATUS,0 ;Si está encendida STATUS = 1, ir a decenas
+    goto division_decenas_v2 ;Si no está encendida STATUS = 0, ir a decenas
+    movlw 1
+    subwf decenas_v2,F ;Decenas = decenas - 1, 25
+    movlw 10
+    addwf var_A,F ;A = 10 + A, A = 255, lo guarda en W = 10
+    ;Convertir para display 2
+    movf decenas_v2, W ;Mueve la variable a W
+    andlw 00001111B ;Agrega los bits menos significativos a w
+    call tabla
+    movwf var_display_3 ;Regresa los bits modificados
+
+division_unidades_v2:
+    movlw 1
+    subwf var_A,F ;var_A - 1, el resultado lo guarda en A
+    incf unidades_v2,F ;incrementar variable unidades
+    btfsc STATUS,0 ;Si está encendida STATUS = 1, ir a unidades
+    goto division_unidades_v2 ;Si no está encendida STATUS = 0, ir a unidades
+    movlw 1
+    subwf unidades_v2,W ;Unidades = Unidades - 1
+    andlw 00001111B ;Agrega los bits menos significativos a w
+    call tabla
+    movwf var_display_4 ;Regresa los bits modificados
+
+division_decenas_v3:
+    movf verde_v1,W
+    movwf var_A ;Mover W a la variable, A = 4
+    movlw 10 ;mover 10 a w
+    subwf var_A,F ;var_A - 10, 4 - 10
+    incf decenas_v3,F ;incrementar decenas
+    btfsc STATUS,0 ;Si está encendida STATUS = 1, ir a decenas
+    goto division_decenas_v3 ;Si no está encendida STATUS = 0, ir a decenas
+    movlw 1
+    subwf decenas_v3,F ;Decenas = decenas - 1, 25
+    movlw 10
+    addwf var_A,F ;A = 10 + A, A = 255, lo guarda en W = 10
+    ;Convertir para display 2
+    movf decenas_v3, W ;Mueve la variable a W
+    andlw 00001111B ;Agrega los bits menos significativos a w
+    call tabla
+    movwf var_display_5 ;Regresa los bits modificados
+
+division_unidades_v3:
+    movlw 1
+    subwf var_A,F ;var_A - 1, el resultado lo guarda en A
+    incf unidades_v3,F ;incrementar variable unidades
+    btfsc STATUS,0 ;Si está encendida STATUS = 1, ir a unidades
+    goto division_unidades_v3 ;Si no está encendida STATUS = 0, ir a unidades
+    movlw 1
+    subwf unidades_v3,W ;Unidades = Unidades - 1
+    andlw 00001111B ;Agrega los bits menos significativos a w
+    call tabla
+    movwf var_display_6 ;Regresa los bits modificados
+
     return
-
-
 END
