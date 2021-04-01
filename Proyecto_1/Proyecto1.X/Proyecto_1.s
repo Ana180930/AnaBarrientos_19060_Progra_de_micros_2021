@@ -92,8 +92,8 @@ pop:
  ;-------------------------Subrutinas de interrupción-------------------- 
 t0_int:
     bsf		flag_sel,disp   ;Se pone en 1 cuando hay interrupció
-    movlw	225		;valor de 1ms
-    movf	TMR0		;Valor inicial para el tmr0
+    movlw	246		;valor de 1ms
+    movwf	TMR0		;Valor inicial para el tmr0
     bcf		T0IF		;Clear inicial para la bandera
     goto	isr 
 PSECT code, delta=2, abs ; delta = tamaño de cada instrucción
@@ -162,9 +162,9 @@ config_tmr0_temporizador:
     banksel	TRISA
     bcf		OPTION_REG, 5	  ;Reloj interno para el temporizador
     bcf		OPTION_REG, 3	  ;Preescaler para tmr0
-    bcf		PS2
+    bsf		PS2
     bcf		PS1
-    bsf		PS0		  ;Prescaler de 4 (0 0 1)
+    bsf		PS0		  ;Prescaler de 64 (1 0 1)
     reinicio_tmr0
     return
     
@@ -197,11 +197,11 @@ seleccionar_displays:
     btfsc   flag,flag_dis5	;Revisa si el display 2 está encendido
     goto    display_6		;si está encendido,se enciende display 2
     btfsc   flag,flag_dis6	;Revisa si el display 2 está encendido
+    goto    display_7		;si está encendido,se enciende display 2
+    btfsc   flag,flag_dis7	;Revisa si el display 2 está encendido
+    goto    display_8		;si está encendido,se enciende display 2
+    btfsc   flag,flag_dis8	;Revisa si el display 2 está encendido
     goto    display_1		;si está encendido,se enciende display 2
-    ;btfsc   flag,flag_dis7	;Revisa si el display 2 está encendido
-    ;goto    display_8		;si está encendido,se enciende display 2
-    ;btfsc   flag,flag_dis8	;Revisa si el display 2 está encendido
-    ;goto    display_1		;si está encendido,se enciende display 2
     goto    loop
     
 display_2:
@@ -356,6 +356,7 @@ division_decenas_v3:
     andlw   00001111B		;Agrega los bits menos significativos a w
     call    tabla
     movwf   var_display_5		;Regresa los bits modificados
+
 division_unidades_v3:
     movlw   1
     subwf   var_A,F		 ;var_A - 1, el resultado lo guarda en A	    
@@ -367,6 +368,35 @@ division_unidades_v3:
     andlw   00001111B		;Agrega los bits menos significativos a w
     call    tabla
     movwf   var_display_6		;Regresa los bits modificados   
-    
+
+division_decenas_v4:
+    movf    verde_v1,W
+    movwf   var_A		    ;Mover W a la variable, A = 4
+    movlw   10			 ;mover 10 a w 
+    subwf   var_A,F		 ;var_A - 10, 4 - 10		    
+    incf    decenas_v4,F	 ;incrementar decenas 
+    btfsc   STATUS,0		 ;Si está encendida STATUS = 1, ir a decenas
+    goto    division_decenas_v4	 ;Si no está encendida STATUS = 0, ir a decenas
+    movlw   1
+    subwf   decenas_v4,F	 ;Decenas = decenas - 1, 25
+    movlw   10
+    addwf   var_A,F		 ;A = 10 + A, A = 255, lo guarda en W = 10
+    ;Convertir para display 2
+    movf    decenas_v4, W		;Mueve la variable a W
+    andlw   00001111B		;Agrega los bits menos significativos a w
+    call    tabla
+    movwf   var_display_7		;Regresa los bits modificados
+
+division_unidades_v4:
+    movlw   1
+    subwf   var_A,F		 ;var_A - 1, el resultado lo guarda en A	    
+    incf    unidades_v4,F	 ;incrementar variable unidades	 
+    btfsc   STATUS,0		 ;Si está encendida STATUS = 1, ir a unidades
+    goto    division_unidades_v4 ;Si no está encendida STATUS = 0, ir a unidades
+    movlw   1
+    subwf   unidades_v4,W	;Unidades = Unidades - 1
+    andlw   00001111B		;Agrega los bits menos significativos a w
+    call    tabla
+    movwf   var_display_8		;Regresa los bits modificados      
     return
 END   

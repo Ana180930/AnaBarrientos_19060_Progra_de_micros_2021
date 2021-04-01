@@ -107,7 +107,7 @@ t2_int:
 
 t0_int:
     movlw	225		;valor de 1ms
-    movf	TMR0		;Valor inicial para el tmr0
+    movwf	TMR0		;Valor inicial para el tmr0
     bcf		T0IF		;Clear inicial para la bandera
     bsf		flag,flag_sel   ;Se pone en 1 cuando hay interrupción
     goto	isr
