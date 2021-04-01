@@ -115,7 +115,7 @@ t0_int:
 PSECT code, delta=2, abs ; delta = tamaño de cada instrucción
 ORG 100h ;posición para el código 
  
-tabla:
+tabla: 
     clrf    PCLATH
     bsf	    PCLATH,0	;Posición 01 00h
     andlw   00001111B	;Para que no se pase de los 4 bits 

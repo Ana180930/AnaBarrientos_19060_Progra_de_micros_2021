@@ -13,7 +13,7 @@
                    displayName="Source Files"
                    projectFiles="true">
       <itemPath>Proyecto_1.s</itemPath>
-      <itemPath>Macros_proyecto.s</itemPath>
+      <itemPath>Macros_proyecto1.s</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"

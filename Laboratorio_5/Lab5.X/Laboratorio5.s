@@ -238,8 +238,8 @@ display_5:
        
 cargar_valor:
     movf    PORTA,W		;Mueve el puerto A a W
-    movwf   cont_porta		;Luego lo mueve a mi variable cont porta
-    movwf   bits_low		;Mueve w a la variable bits_low
+    movwf   cont_porta		;Luego lo mueve a mi variable cont porta = PORTA
+    movwf   bits_low		;Mueve w a la variable bits_low = PORTA
     swapf   bits_low,W		;Intercambio los nibbles y los guardo.
     movwf   bits_high
     
