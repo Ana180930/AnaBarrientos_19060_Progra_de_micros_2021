@@ -460,6 +460,7 @@ tiempos_vias:
     subwf   TV1,w		;TV1 - 6 = 4s , W = 4 
     movwf   verde_v1
     
+    
     return
 
     
