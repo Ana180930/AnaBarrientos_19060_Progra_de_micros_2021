@@ -5,7 +5,6 @@
 ;Carnet: 19060
 ;Compilador: pic-as (v2.30), MPLABX v5.40
 ;******************************************************************************
-
 PROCESSOR 16F887 // Para indicar que microprocesador es 
     
 #include <xc.inc> ;Sirve para definir los registros
@@ -23,11 +22,9 @@ CONFIG BOREN=OFF // Sin reinicio cuándo el voltaje de alimentación baja a 4V
 CONFIG IESO=OFF // Reinicio sin cambio de reloj de interno a externo
 CONFIG FCMEN=OFF // Cambio de reloj externo a interno en caso de fallo 
 CONFIG LVP=ON // Programación en bajo voltaje permitida
-
 ;Configuration word 2
 CONFIG WRT=OFF // Protección de autoescritura por el programa desactivada
 CONFIG BOR4V=BOR40V // Reinicio abajo de 4V, (BOR21V=2.1V)
-
 PSECT udata_bank0 ;PSECT = sección del programa
     unidades_v1:	    DS 1;1 byte
     decenas_v1:		    DS 1;1 byte
@@ -76,16 +73,13 @@ resetVec:
     PAGESEL main ;salta a la página de main y si en caso estuviera lejos
 		 ;con el goto regreso, el PAGESEL cambia de página.
     goto main
-
 ;------------------ Vector interrupción -----------------
 PSECT vec_inte, class=CODE, delta=2, abs
 ORG 04h		;Posición 0004h para el vector interrupción
-
 push:
     movwf   W_TEMP	    ;Mueve el portB al registro W temporal
     swapf   STATUS,W  ;Le da la vuelta al STATUS sin alterarlo y lo guarda en W
     movwf   STATUS_TEMP	    ;Muevo el STATUS al reves a STATUS temporal
-
 isr:			    ;Rutina de interrupción		    
     btfsc   T0IF
     goto    t0_int
@@ -95,7 +89,6 @@ pop:
     swapf   W_TEMP,F	    ;Le da la vuelta a w_temp y lo guarda en él 
     swapf   W_TEMP,W	    ;Lo regresa al original y lo guarda en W
     retfie		    ;Regreso de la interrupcion
-
  ;-------------------------Subrutinas de interrupción-------------------- 
 t0_int:
     bsf		flag_sel,disp   ;Se pone en 1 cuando hay interrupció
@@ -103,7 +96,6 @@ t0_int:
     movf	TMR0		;Valor inicial para el tmr0
     bcf		T0IF		;Clear inicial para la bandera
     goto	isr 
-
 PSECT code, delta=2, abs ; delta = tamaño de cada instrucción
 ORG 100h ;posición para el código 
  
@@ -124,7 +116,6 @@ tabla:
     retlw   01101111B	;Display = 9
     retlw   0x0 
     retfie
-
 ;---------------------------configuración---------------------------------
 main:
     banksel ANSEL
@@ -183,7 +174,6 @@ config_tmr0_temporizador:
     bcf		T0IF	    ;Limpiar bandera del tmr0
     return
 
-    
 seleccionar_displays:
     bcf	    flag_sel,disp	;apaga la bandera para selección
     clrf    PORTA		;limpia puerto d
@@ -229,7 +219,6 @@ display_1:
     bcf	    flag,flag_dis6	;Apaga la bandera del display 2
     bsf	    flag,flag_dis1	;Enciende la bandera del display 1
     goto    loop    
-
 display_3:
     movf    var_display_3,W	;Mover variable cargada a W
     movwf   PORTC		;Cargamos el valor al puerto c
@@ -237,7 +226,6 @@ display_3:
     bcf	    flag,flag_dis2	;Apaga la bandera del display 1
     bsf	    flag,flag_dis3	;Enciende la bandera display 2
     goto    loop
-
 display_4:
     movf    var_display_4,W	;Mover variable cargada a W
     movwf   PORTC		;Cargamos el valor al puerto c
@@ -245,7 +233,6 @@ display_4:
     bcf	    flag,flag_dis3	;Apaga la bandera del display 1
     bsf	    flag,flag_dis4	;Enciende la bandera display 2
     goto    loop
-
 display_5:
     movf    var_display_5,W	;Mover variable cargada a W
     movwf   PORTC		;Cargamos el valor al puerto c
@@ -253,7 +240,6 @@ display_5:
     bcf	    flag,flag_dis4	;Apaga la bandera del display 1
     bsf	    flag,flag_dis5	;Enciende la bandera display 2
     goto    loop
-
 display_6:
     movf    var_display_6,W	;Mover variable cargada a W
     movwf   PORTC		;Cargamos el valor al puerto c
@@ -269,7 +255,6 @@ display_7:
     bcf	    flag,flag_dis6	;Apaga la bandera del display 1
     bsf	    flag,flag_dis7	;Enciende la bandera display 2
     goto    loop
-
 display_8:
     movf    var_display_8,W	;Mover variable cargada a W
     movwf   PORTC		;Cargamos el valor al puerto c
@@ -371,7 +356,6 @@ division_decenas_v3:
     andlw   00001111B		;Agrega los bits menos significativos a w
     call    tabla
     movwf   var_display_5		;Regresa los bits modificados
-
 division_unidades_v3:
     movlw   1
     subwf   var_A,F		 ;var_A - 1, el resultado lo guarda en A	    
