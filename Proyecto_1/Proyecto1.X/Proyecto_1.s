@@ -9,7 +9,7 @@
 PROCESSOR 16F887 // Para indicar que microprocesador es 
     
 #include <xc.inc> ;Sirve para definir los registros
-#include "Macros1.s"
+#include "Macros_proyecto1.s"
     
 ;Configuration word 1
 CONFIG FOSC=INTRC_NOCLKOUT // Oscilador interno sin salidas
@@ -29,20 +29,33 @@ CONFIG WRT=OFF // Protección de autoescritura por el programa desactivada
 CONFIG BOR4V=BOR40V // Reinicio abajo de 4V, (BOR21V=2.1V)
 
 PSECT udata_bank0 ;memoria común, PSECT = sección del programa
-    variable_inc:	    DS 1;1 byte
     unidades:		    DS 1;1 byte
-    decenas:		    DS 1; 1 byte
-    var_A:		    DS 1; 1 byte
-    var_B:		    DS 1; 1 byte
-    cont_porta:		    DS 1; 1 byte
+    decenas:		    DS 1;1 byte
+    var_display_1:	    DS 1;1 byte
+    var_display_2:	    DS 1;1 byte
+    var_dec:		    DS 1;1 byte
+    var_A:		    DS 1;1 byte
+    var_B:		    DS 1;1 byte
+    TV1:		    DS 1;1 byte
+    TV2:		    DS 1;1 byte
+    TV3:		    DS 1;1 byte
+    verde_v1:		    DS 1;1 byte
+    amarillo_v1:	    DS 1;1 byte  
+    verdeti_v1:		    DS 1;1 byte
 PSECT udata_shr ;memoria compartida, variables para interrupciones
     W_TEMP:	    DS 1 ;1 byte
     STATUS_TEMP:    DS 1 ;1 byte
+    flag_sel:	    DS 1 
+    #define	    disp  0
     flag:	    DS 1 ;8 banderas
-    #define	    flag_sel  0
-    #define	    flag_dis1 1
-    #define	    flag_dis2 2
-    #define	    flag_timer2 3
+    #define	    flag_dis1 0
+    #define	    flag_dis2 1
+    #define	    flag_dis3 2
+    #define	    flag_dis4 3
+    #define	    flag_dis5 4
+    #define	    flag_dis6 5
+    #define	    flag_dis7 6
+    #define	    flag_dis8 7
     
 PSECT resVect, class=CODE, abs, delta=2 ;abs = posición absoluta en donde se 
 ;------------------ vector resest -----------------
@@ -62,10 +75,6 @@ push:
     movwf   STATUS_TEMP	    ;Muevo el STATUS al reves a STATUS temporal
 
 isr:			    ;Rutina de interrupción		    
-    btfsc   TMR1IF
-    goto    t1_int
-    btfsc   TMR2IF
-    goto    t2_int
     btfsc   T0IF
     goto    t0_int
 pop:
@@ -76,7 +85,12 @@ pop:
     retfie		    ;Regreso de la interrupcion
 
  ;-------------------------Subrutinas de interrupción-------------------- 
- 
+t0_int:
+    bsf		flag_sel,disp   ;Se pone en 1 cuando hay interrupció
+    movlw	225		;valor de 1ms
+    movf	TMR0		;Valor inicial para el tmr0
+    bcf		T0IF		;Clear inicial para la bandera
+    goto	isr 
  
  
  
@@ -126,11 +140,110 @@ main:
     clrf    PORTC	;Para un clear inicial en los pines
     clrf    PORTD
     clrf    PORTE
-    
+    clrf    flag		;Limpiar variable banderas
+    clrf    flag_sel
+    bsf	    flag,flag_dis1
+    config_reloj
+    call    config_tmr0_temporizador
+    call    config_int_tmr0
 ;-----------------------------Loop principal-----------------------------
 loop:  
-    
+    btfsc	flag_sel,disp
+    goto	seleccionar_displays
     goto	loop
       
 ;----------------------------sub rutinas-----------------------------------
+config_tmr0_temporizador:
+    banksel	TRISA
+    bcf		OPTION_REG, 5	  ;Reloj interno para el temporizador
+    bcf		OPTION_REG, 3	  ;Preescaler para tmr0
+    bcf		PS2
+    bcf		PS1
+    bsf		PS0		  ;Prescaler de 4 (0 0 1)
+    reinicio_tmr0
+    return
     
+    config_int_tmr0:
+    bsf	    INTCON, 7	;Habilitar todas las interrupciones
+    bsf		T0IE	    ;Habilitar interrupción tmr0
+    bcf		T0IF	    ;Limpiar bandera del tmr0
+    return
+
+seleccionar_displays:
+    bcf	    flag_sel,disp	;apaga la bandera para selección
+    clrf    PORTA		;limpia puerto d
+    call    valores_division	;Realiza las divisiones para unidades/decenas
+    call    cargar_valor	;Carga los bits ya modificados al portc	
+    btfsc   flag,flag_dis1	;Revisa si el display 1 está encendido
+    goto    display_2		;si está encendido,se enciende display 2
+    btfsc   flag,flag_dis2	;Revisa si el display 2 está encendido
+    goto    display_1		;Si está enciendida, se enciende display 1
+   
+    goto    loop
+    
+display_2:
+    movf    var_display_2,W		;Mover variable cargada a W
+    movwf   PORTC		;Cargamos el valor al puerto c
+    bsf	    PORTA,0		;encedemos el display 2
+    bcf	    flag,flag_dis1	;Apaga la bandera del display 1
+    bsf	    flag,flag_dis2	;Enciende la bandera display 2
+    goto    loop
+    
+display_1:
+    movf    var_display_1,W		;Mover variable cargada a W
+    movwf   PORTC		;Cargamos el valor al puerto c
+    bsf	    PORTA,1		;encedemos el display 1
+    bcf	    flag,flag_dis2	;Apaga la bandera del display 2
+    bsf	    flag,flag_dis1	;Enciende la bandera del display 1
+    goto    loop    
+    
+cargar_valor: 
+   ;Convertir para display 2
+    movf    decenas, W		;Mueve la variable a W
+    andlw   00001111B		;Agrega los bits menos significativos a w
+    call    tabla
+    movwf   var_display_2		;Regresa los bits modificados
+    ;Convertir para display 1
+    movf    unidades, W		;Mueve la variable a W
+    andlw   00001111B		;Agrega los bits menos significativos a w
+    call    tabla
+    movwf   var_display_1		;Regresa los bits modificados
+    
+    return
+
+valores_division:
+    time_decrementar
+    movf    verde_v1,W
+    movwf   var_A		    ;Mover W a la variable, A = 255
+    movlw   10			    
+    movwf   var_B		    ;Variable B = 10
+    movlw   0		
+    movwf   decenas		    ;Variable decenas = 0    
+    movlw   0
+    movwf   unidades		    ;Variable unidades = 0
+    
+division_decenas:
+    movf    var_B,W		 ;mover var_A a w 
+    subwf   var_A,F		 ;var_A - var_B, el resultado lo guarda en A		    
+    incf    decenas,F		 ;incrementar decenas 
+    btfsc   STATUS,0		 ;Si está encendida STATUS = 1, ir a decenas
+    goto    division_decenas	 ;Si no está encendida STATUS = 0, ir a decenas
+    movlw   1
+    subwf   decenas,F		 ;Decenas = decenas - 1, 25
+    movlw   10
+    addwf   var_A,F		 ;A = 10 + A, A = 255
+
+division_unidades:
+    movlw   1
+    movwf   var_B		 ;B = 1
+    movf    var_B,W		 ;mover var_A a w 
+    subwf   var_A,F		 ;var_A - var_B, el resultado lo guarda en A	    
+    incf    unidades,F		 ;incrementar variable unidades	 
+    btfsc   STATUS,0		 ;Si está encendida STATUS = 1, ir a unidades
+    goto    division_unidades	 ;Si no está encendida STATUS = 0, ir a unidades
+    movlw   1
+    subwf   unidades,F		 ;Unidades = Unidades - 1
+    return
+
+
+END   
