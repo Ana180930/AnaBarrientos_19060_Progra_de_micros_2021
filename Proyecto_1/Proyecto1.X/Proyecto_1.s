@@ -183,6 +183,7 @@ config_tmr0_temporizador:
     bcf		T0IF	    ;Limpiar bandera del tmr0
     return
 
+    
 seleccionar_displays:
     bcf	    flag_sel,disp	;apaga la bandera para selección
     clrf    PORTA		;limpia puerto d
