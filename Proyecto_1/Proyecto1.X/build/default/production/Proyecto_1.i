@@ -2529,24 +2529,22 @@ PSECT udata_bank0 ;PSECT = sección del programa
     var_display_6: DS 1;1 byte
     var_display_7: DS 1;1 byte
     var_display_8: DS 1;1 byte
-    var_dec: DS 1;1 byte
+    var_dec1: DS 1;1 byte
+    var_dec2: DS 1;1 byte
+    var_dec3: DS 1;1 byte
     var_A: DS 1;1 byte
-    var_B: DS 1;1 byte
     TV1: DS 1;1 byte
     TV2: DS 1;1 byte
     TV3: DS 1;1 byte
     verde_v1: DS 1;1 byte
     amarillo_v1: DS 1;1 byte
-    verdet_v1: DS 1;1 byte
+    rojo_v1: DS 1;1 byte
     verde_v2: DS 1;1 byte
     amarillo_v2: DS 1;1 byte
-    verdet_v2: DS 1;1 byte
+    rojo_v2: DS 1;1 byte
     verde_v3: DS 1;1 byte
     amarillo_v3: DS 1;1 byte
-    verdet_v3: DS 1;1 byte
-    verde_v4: DS 1;1 byte
-    amarillo_v4: DS 1;1 byte
-    verdet_v4: DS 1;1 byte
+    rojo_v3: DS 1;1 byte
 PSECT udata_shr ;memoria compartida, variables para interrupciones
     W_TEMP: DS 1 ;1 byte
     STATUS_TEMP: DS 1 ;1 byte
@@ -2555,8 +2553,11 @@ PSECT udata_shr ;memoria compartida, variables para interrupciones
 
 
     flag: DS 1 ;8 banderas
-# 81 "Proyecto_1.s"
+# 77 "Proyecto_1.s"
     bandera: DS 1 ;8 banderas
+
+
+
 
 
 
@@ -2576,8 +2577,8 @@ push:
     swapf STATUS,W ;Le da la vuelta al STATUS sin alterarlo y lo guarda en W
     movwf STATUS_TEMP ;Muevo el STATUS al reves a STATUS temporal
 isr: ;Rutina de interrupción
-    btfsc ((PIR1) and 07Fh), 0
-    goto t1_int
+    ;btfsc ((PIR1) and 07Fh), 0
+    ;goto t1_int
     btfsc ((INTCON) and 07Fh), 2
     goto t0_int
 pop:
@@ -2598,7 +2599,9 @@ t1_int:
     ;Valor inicial para el tmr1: TMR1H y TMR1L
     banksel PORTA
     ;bcf STATUS,2 ;Limpia la bandera de 2
-    decf verde_v1,F
+    decf var_dec1,F
+    decf var_dec2,F
+    decf var_dec3,F
     ;Bandera status zero
     btfsc STATUS,2
     bsf flag_sel,2
@@ -2656,23 +2659,25 @@ main:
     clrf PORTE
     clrf flag ;Limpiar variable banderas
     clrf TV1
-    clrf var_dec
-    clrf verde_v1
+    clrf TV2
+    clrf TV3
+    clrf var_dec1
+    clrf var_dec2
+    clrf var_dec3
     clrf flag_sel
     clrf var_A
-    clrf var_B
     bsf flag,0
-    ;bsf bandera,0
-    call tiempos_vias
+    bsf bandera,0
     config_reloj
-    call config_tmr1_temporizador
-    call config_int_tmr1
+    ;call config_tmr1_temporizador
+    ;call config_int_tmr1
     call config_tmr0_temporizador
     call config_int_tmr0
+    ;call tiempos_vias
 ;-----------------------------Loop principal-----------------------------
 loop:
 
-
+    ;call Estados
     btfsc flag_sel,0
     goto seleccionar_displays ;ponerlo en una subrutina aparte
     goto loop
@@ -2689,7 +2694,7 @@ config_tmr0_temporizador:
     return
 
 config_int_tmr0:
-    ;bsf INTCON, 7 ;Habilitar todas las interrupciones
+    bsf INTCON, 7 ;Habilitar todas las interrupciones
     bsf ((INTCON) and 07Fh), 5 ;Habilitar interrupción tmr0
     bcf ((INTCON) and 07Fh), 2 ;Limpiar bandera del tmr0
     return
@@ -2714,6 +2719,77 @@ config_int_tmr1:
     bsf PIE1,0 ;Habilitar la interrupción del tmr1
     bsf INTCON,6 ;Habilita las interrupciones perifericas
     bsf INTCON,7 ;Habilita las interrupciones globales
+    return
+
+tiempos_vias:
+    ;Cargar valores
+    movlw 10
+    movwf TV1
+    movwf TV2
+    movwf TV3
+    ;Realiza la operacion del tiempo para los displays
+    movf TV1,W ;W = TV1 = 10
+    movwf var_dec1 ;Var_dec1 = 10 (via 1)
+    movwf var_dec2 ;Var_dec2 = 10 (via 2)
+    addwf TV2,W ;W = TV1 + TV2 = 20
+    movwf var_dec3 ;Var_dec3 = 20
+    ;Verde
+    ;movlw 01001100B ;Verde v1, rojo v2, rojo v3
+    ;movwf PORTD
+    bsf PORTD,4
+    bcf flag_sel,2
+    bcf bandera,3
+    bcf bandera,4
+    return
+
+Estados:
+    bcf PORTA,6
+    bcf PORTA,7 ;Display gris en gris
+    btfsc bandera,0
+    goto Estado_01
+    goto fin_estados
+    ;goto Estado_02
+
+;-----------------------------------Estados-----------------------------------
+Estado_01:
+;Displays y leds v1 = verde (10 s), via 2 = rojo (10s), via 3 = rojo (20s)
+    btfss flag_sel,2
+    goto verde_t
+    ;Carga valor a los displays
+    bcf flag_sel,2
+    bcf bandera,3
+    bcf bandera,4
+    ;movlw 01001100B ;Verde v1, rojo v2, rojo v3
+    ;movwf PORTD
+    ;Var_dec = 6
+
+    verde_t:
+    movlw 6
+    subwf var_dec1,f
+    btfsc STATUS,2
+    bsf bandera,3
+    btfsc bandera,3
+    call verde_parpadeo_1
+    goto fin_estados
+
+    movlw 3
+    subwf var_dec1,f
+    btfsc STATUS,2
+    bsf bandera,4
+    btfsc bandera,4
+    call 4
+    goto fin_estados
+
+fin_estados:
+return
+
+verde_parpadeo_1:
+    return
+
+amarillo_1:
+    bcf bandera,3
+    movlw 01001010B
+    movwf PORTD
     return
 
 seleccionar_displays:
@@ -2813,7 +2889,8 @@ display_8:
 valores_division:
 ;--------------------------------- vía 1 -----------------------------------
 division_decenas_v1:
-    movf verde_v1,W
+    ;movf var_dec1,W
+    movlw 10
     movwf var_A ;Mover W a la variable, A = 4
     movlw 10 ;mover 10 a w
     subwf var_A,F ;var_A - 10, 4 - 10
@@ -2844,7 +2921,8 @@ division_unidades_v1:
 
 ;----------------------------------- vía 2 -----------------------------------
 division_decenas_v2:
-    movf verde_v2,W
+    ;movf var_dec1,W
+    movlw 10
     movwf var_A ;Mover W a la variable, A = 4
     movlw 10 ;mover 10 a w
     subwf var_A,F ;var_A - 10, 4 - 10
@@ -2874,7 +2952,8 @@ division_unidades_v2:
     movwf var_display_4 ;Regresa los bits modificados
 
 division_decenas_v3:
-    movf verde_v3,W
+    ;movf var_dec1,W
+    movlw 10
     movwf var_A ;Mover W a la variable, A = 4
     movlw 10 ;mover 10 a w
     subwf var_A,F ;var_A - 10, 4 - 10
@@ -2904,7 +2983,7 @@ division_unidades_v3:
     movwf var_display_6 ;Regresa los bits modificados
 
 division_decenas_v4:
-    movf verde_v4,W
+    ;movf verde_v4,W
     movwf var_A ;Mover W a la variable, A = 4
     movlw 10 ;mover 10 a w
     subwf var_A,F ;var_A - 10, 4 - 10
@@ -2933,31 +3012,6 @@ division_unidades_v4:
     call tabla
     movwf var_display_8 ;Regresa los bits modificados
     return
-
-
-;----------------------------Display gris----------------------------------
-
-
-;-------------------------------Banderas------------------------------------
-
-
-;--------------------------------Estados------------------------------------
-
-
-
-;-------------------------Tiempos para las vias------------------------------
-tiempos_vias:
-    movlw 10
-    movwf TV1 ;Valor inicial vìa 1
-    movlw 6 ;W = 6
-    subwf TV1,F ;TV1 - 6 = 4s , W = 4
-    movf TV1,W ;W = 4
-    movwf verde_v1 ;Para estado 1, verde
-
-    ;movlw 3
-    ;movwf verdet_v1 ;Para estado 2, verde titilante
-    return
-
 
 
 
