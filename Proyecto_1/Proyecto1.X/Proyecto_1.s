@@ -193,7 +193,7 @@ main:
     call    config_int_tmr0
 ;-----------------------------Loop principal-----------------------------
 loop:  
-    goto	Modo_1
+    
     
     btfsc	flag_sel,disp
     goto	seleccionar_displays ;ponerlo en una subrutina aparte
@@ -335,7 +335,7 @@ display_8:
 valores_division:
 ;--------------------------------- vía 1 -----------------------------------    
 division_decenas_v1:
-    movf    var_dec,W
+    movf    verde_v1,W
     movwf   var_A		    ;Mover W a la variable, A = 4
     movlw   10			 ;mover 10 a w 
     subwf   var_A,F		 ;var_A - 10, 4 - 10		    
@@ -456,32 +456,18 @@ division_unidades_v4:
     movwf   var_display_8		;Regresa los bits modificados      
     return
 
-Modo_1:
+
 ;----------------------------Display gris----------------------------------
-    bcf	    PORTA,6		;apagar transistor display 7
-    bcf	    PORTA,7		;apagar transistor display 8
-    ;Escoger estados
-    ;btfsc   bandera,estado_1	;revisa la bandera del estado 1
-    call    estado_1		;Si está encendida va a estado 1
-    ;btfsc   bandera,estado_2	;Si no, revisa la bandera del estado 2
-    ;goto    bandera_cero2
-    goto    loop
+   
 
 ;-------------------------------Banderas------------------------------------
 
 
 ;--------------------------------Estados------------------------------------
-estado_1: ;Verde vía 1
-    movlw   01001100B		;LEDS via 1, semáforo verde encendido
-    movwf   PORTD
-    clrf    var_A
-    movf    verde_v1,W
-    movwf   var_dec
-    ;movwf   var_A	    ;Mover W a la variable, A = 4
-    clrf    verdet_v1	    ;verde titilante = 0
-    return
+
     
 
+    
 ;-------------------------Tiempos para las vias------------------------------
 tiempos_vias:			
     movlw   10
