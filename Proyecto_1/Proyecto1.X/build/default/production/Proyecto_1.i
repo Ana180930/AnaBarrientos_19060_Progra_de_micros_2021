@@ -2600,8 +2600,8 @@ t1_int:
     banksel PORTA
     ;bcf STATUS,2 ;Limpia la bandera de 2
     decf var_dec1,F
-    decf var_dec2,F
-    decf var_dec3,F
+    ;decf var_dec2,F
+    ;decf var_dec3,F
     ;Bandera status zero
     btfsc STATUS,2
     bsf flag_sel,2
@@ -3016,4 +3016,5 @@ division_unidades_v4:
 
 
 
-END
+
+    END

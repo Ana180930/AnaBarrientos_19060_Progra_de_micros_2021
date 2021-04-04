@@ -14,7 +14,7 @@
 $build/default/production/Proyecto_1.o
 resVect CODE 0 0 0 3 2
 code CODE 0 0 0 23E 2
-vec_inte CODE 0 0 0 20 2
+vec_inte CODE 0 0 0 1E 2
 udata_bank0 BANK0 1 20 20 20 1
 udata_shr COMMON 1 70 70 5 1
 config CONFIG 4 2007 2007 2 2
@@ -77,16 +77,14 @@ F vec_inte CODE >113:C:\MPLABX\AnaBarrientos_19060_Progra_de_micros_2021\Proyect
 13 vec_inte CODE >118:C:\MPLABX\AnaBarrientos_19060_Progra_de_micros_2021\Proyecto_1\Proyecto1.X\Proyecto_1.s
 13 vec_inte CODE >120:C:\MPLABX\AnaBarrientos_19060_Progra_de_micros_2021\Proyecto_1\Proyecto1.X\Proyecto_1.s
 15 vec_inte CODE >122:C:\MPLABX\AnaBarrientos_19060_Progra_de_micros_2021\Proyecto_1\Proyecto1.X\Proyecto_1.s
-16 vec_inte CODE >123:C:\MPLABX\AnaBarrientos_19060_Progra_de_micros_2021\Proyecto_1\Proyecto1.X\Proyecto_1.s
-17 vec_inte CODE >124:C:\MPLABX\AnaBarrientos_19060_Progra_de_micros_2021\Proyecto_1\Proyecto1.X\Proyecto_1.s
-18 vec_inte CODE >126:C:\MPLABX\AnaBarrientos_19060_Progra_de_micros_2021\Proyecto_1\Proyecto1.X\Proyecto_1.s
-19 vec_inte CODE >127:C:\MPLABX\AnaBarrientos_19060_Progra_de_micros_2021\Proyecto_1\Proyecto1.X\Proyecto_1.s
-1A vec_inte CODE >128:C:\MPLABX\AnaBarrientos_19060_Progra_de_micros_2021\Proyecto_1\Proyecto1.X\Proyecto_1.s
-1B vec_inte CODE >129:C:\MPLABX\AnaBarrientos_19060_Progra_de_micros_2021\Proyecto_1\Proyecto1.X\Proyecto_1.s
-1C vec_inte CODE >130:C:\MPLABX\AnaBarrientos_19060_Progra_de_micros_2021\Proyecto_1\Proyecto1.X\Proyecto_1.s
-1D vec_inte CODE >131:C:\MPLABX\AnaBarrientos_19060_Progra_de_micros_2021\Proyecto_1\Proyecto1.X\Proyecto_1.s
-1E vec_inte CODE >132:C:\MPLABX\AnaBarrientos_19060_Progra_de_micros_2021\Proyecto_1\Proyecto1.X\Proyecto_1.s
-1F vec_inte CODE >133:C:\MPLABX\AnaBarrientos_19060_Progra_de_micros_2021\Proyecto_1\Proyecto1.X\Proyecto_1.s
+16 vec_inte CODE >126:C:\MPLABX\AnaBarrientos_19060_Progra_de_micros_2021\Proyecto_1\Proyecto1.X\Proyecto_1.s
+17 vec_inte CODE >127:C:\MPLABX\AnaBarrientos_19060_Progra_de_micros_2021\Proyecto_1\Proyecto1.X\Proyecto_1.s
+18 vec_inte CODE >128:C:\MPLABX\AnaBarrientos_19060_Progra_de_micros_2021\Proyecto_1\Proyecto1.X\Proyecto_1.s
+19 vec_inte CODE >129:C:\MPLABX\AnaBarrientos_19060_Progra_de_micros_2021\Proyecto_1\Proyecto1.X\Proyecto_1.s
+1A vec_inte CODE >130:C:\MPLABX\AnaBarrientos_19060_Progra_de_micros_2021\Proyecto_1\Proyecto1.X\Proyecto_1.s
+1B vec_inte CODE >131:C:\MPLABX\AnaBarrientos_19060_Progra_de_micros_2021\Proyecto_1\Proyecto1.X\Proyecto_1.s
+1C vec_inte CODE >132:C:\MPLABX\AnaBarrientos_19060_Progra_de_micros_2021\Proyecto_1\Proyecto1.X\Proyecto_1.s
+1D vec_inte CODE >133:C:\MPLABX\AnaBarrientos_19060_Progra_de_micros_2021\Proyecto_1\Proyecto1.X\Proyecto_1.s
 0 resVect CODE >87:C:\MPLABX\AnaBarrientos_19060_Progra_de_micros_2021\Proyecto_1\Proyecto1.X\Proyecto_1.s
 0 resVect CODE >88:C:\MPLABX\AnaBarrientos_19060_Progra_de_micros_2021\Proyecto_1\Proyecto1.X\Proyecto_1.s
 0 resVect CODE >89:C:\MPLABX\AnaBarrientos_19060_Progra_de_micros_2021\Proyecto_1\Proyecto1.X\Proyecto_1.s
