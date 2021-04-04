@@ -554,6 +554,7 @@ division_unidades_v3:
     call    tabla
     movwf   var_display_6		;Regresa los bits modificados   
 
+    
 ;-------------------------------via 4-----------------------------------------
     movlw   10
     movwf   var_A		 ;Carga el valor a los displays
