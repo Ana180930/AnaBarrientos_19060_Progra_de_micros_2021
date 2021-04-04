@@ -490,6 +490,7 @@ division_decenas_v3:
     call    tabla
     movwf   var_display_5		;Regresa los bits modificados
 
+    
 division_unidades_v3:
     movlw   1
     subwf   var_A,F		 ;var_A - 1, el resultado lo guarda en A	    
