@@ -2567,6 +2567,7 @@ PSECT udata_shr ;memoria compartida, variables para interrupciones
 
 
 
+
 PSECT resVect, class=CODE, abs, delta=2 ;abs = posición absoluta en donde se
 ;------------------ vector resest -----------------
 ORG 00h ;posición 0000h para el reset, ORG = ubicación dentro de un sector
@@ -2618,7 +2619,6 @@ t1_int:
     movwf TMR1L ;Le carga 1111 0111 a los bits menos significativos
     bcf PIR1, 0 ;limpia la bandera del timer1
     goto isr
-
 t2_int:
     clrf TMR2 ;limpia el tmr2
     incf dec_ledverde,f ;incrementa la variable para la led verde
@@ -2627,12 +2627,10 @@ t2_int:
     goto apagar ;Si está en 0 apaga la bandera del parpadeo
     goto encender ;Si está en 1 enciende la bandera del parpadeo
     apagar:
-    bcf bandera,0
-    bcf bandera,1
+    bcf bandera02,0
     goto fin_t2_int
     encender:
-    bsf bandera,0
-    bsf bandera,1
+    bsf bandera02,0
     fin_t2_int:
     goto isr
 
@@ -2684,6 +2682,7 @@ main:
     clrf PORTE
     clrf flag ;Limpiar variable banderas
     clrf bandera
+    clrf bandera02
     clrf TV1
     clrf TV2
     clrf TV3
@@ -2783,15 +2782,12 @@ tiempos_vias:
     movwf var_dec2 ;Var_dec2 = 10 (via 2)
     addwf TV2,W ;W = TV1 + TV2 = 20
     movwf var_dec3 ;Var_dec3 = 20
-
     ;Verde
-    clrf PORTD
     movlw 01001100B ;Verde v1, rojo v2, rojo v3
     movwf PORTD
     bcf flag_sel,2
     bcf bandera,3
     bcf bandera,5
-    clrf dec_ledverde
     return
 
 Estados:
@@ -2802,12 +2798,11 @@ Estados:
     ;btfsc bandera,1
     ;goto Estado_02
     goto fin_estados
-
 ;-----------------------------------Estados-----------------------------------
 Estado_01:
 ;Displays y leds v1 = verde (10 s), via 2 = rojo (10s), via 3 = rojo (20s)
     btfss flag_sel,2 ;Bandera reseteo
-    goto verde_t1
+    goto verde_t01
     ;Carga valor a los displays
     bcf flag_sel,2
     bcf bandera,3
@@ -2816,7 +2811,7 @@ Estado_01:
     ;movwf PORTD
     ;Var_dec = 6
 
-    verde_t1: ;Verde titilante
+    verde_t01: ;Verde titilante
     movlw 6
     subwf var_dec1,w
     btfsc STATUS,2 ;Revisa si el display llegó a 6
@@ -2840,37 +2835,13 @@ Estado_01:
     btfsc flag_sel,2
     goto reset_1
 
-Estado_02:
-    ;Displays y leds v1 = verde (10 s), via 2 = rojo (10s), via 3 = rojo (20s)
-    btfss flag_sel,2 ;Bandera reseteo
-    goto verde_t2
-    movf TV2,W ;Actuliza los valores y limpia banderas,registros
-    movwf var_dec2
-    movwf var_dec3
-    addwf TV3,W
-    movwf var_dec1
-    clrf PORTD
-    movlw 01100001B ;Via 2: rojo v1, verde v2, rojo v3
-    movwf PORTD
-    bcf flag_sel,2
-    bcf bandera,4
-    bcf bandera,5
-    clrf dec_ledverde
-
-    verde_t2:
-    movlw 6
-    subwf var_dec2,w
-    btfsc STATUS,2 ;Revisa si el display llegó a 6
-    bsf bandera,4 ;Si llegó, enciende la bandera parpadeo
-    btfsc bandera,4 ;Si no, revisa la bandera
-    goto verde_parpadeo_2 ;Si la bandera está encendida va a la subrutina
 
 
 fin_estados:
 return
 
 verde_parpadeo_1:
-    btfsc bandera,0 ;Revisa la bandera parpadeo de la interrupcion
+    btfsc bandera02,0 ;Revisa la bandera parpadeo de la interrupcion
     goto encender_led01 ;Si está encendida, enciende la led
     goto apagar_led01 ;Si no, apago la led
     encender_led01:
@@ -2881,18 +2852,6 @@ verde_parpadeo_1:
     fin_subrutina01:
     goto revisar_amarillo01 ;Regresa a 5 01
 
-verde_parpadeo_2:
-    btfsc bandera,1 ;Revisa la bandera parpadeo de la interrupcion
-    goto encender_led02 ;Si está encendida, enciende la led
-    goto apagar_led02 ;Si no, apago la led
-    encender_led02:
-    bsf PORTD,5
-    goto fin_subrutina02
-    apagar_led02:
-    bcf PORTD,5
-    fin_subrutina02:
-    goto fin_estados ;Regresa a 5 02
-
 amarillo_1:
     bcf bandera,3 ;Apaga la bandera de verde titilante
     bcf PORTD,5 ;Apaga la led verde
@@ -2901,21 +2860,13 @@ amarillo_1:
     bcf bandera,5 ;Apaga la bandera de 5, via 1
     goto revisar_cero01
 
-amarillo_2:
-    bcf bandera,4 ;Apaga la bandera de verde titilante
-    bcf PORTD,5 ;Apaga la led verde
-    movlw 01010001B ;Enciende la led amarilla, vía 1
-    movwf PORTD
-    bcf bandera,5 ;Apaga la bandera de 5, via 1
-    goto fin_estados
-
 reset_1:
     bcf bandera,0 ;Apaga la bandera estado 1
     bsf bandera,1 ;Enciende la bandera estado 2
     clrf var_dec1
     clrf var_dec2
     clrf var_dec3 ;Quita el valor anterior
-    ;clrf PORTD
+    clrf PORTD
 ; movf TV2,W ;Actuliza los valores
 ; movwf var_dec2
 ; movwf var_dec3
@@ -3047,7 +2998,6 @@ division_unidades_v1:
     andlw 00001111B ;Agrega los bits menos significativos a w
     call tabla
     movwf var_display_1 ;Regresa los bits modificados
-
 ;----------------------------------- vía 2 -----------------------------------
     movf var_dec2,W
     movwf var_A ;Carga el valor a los displays
@@ -3082,7 +3032,6 @@ division_unidades_v2:
 ;--------------------------------via 3----------------------------------------
     movf var_dec3,W
     movwf var_A ;Carga el valor a los displays
-
 division_decenas_v3:
     movlw 10 ;mover 10 a w
     subwf var_A,F ;var_A - 10, 4 - 10
@@ -3098,7 +3047,6 @@ division_decenas_v3:
     andlw 00001111B ;Agrega los bits menos significativos a w
     call tabla
     movwf var_display_5 ;Regresa los bits modificados
-
 
 division_unidades_v3:
     movlw 1
@@ -3116,6 +3064,7 @@ division_unidades_v3:
 ;-------------------------------via 4-----------------------------------------
     movlw 10
     movwf var_A ;Carga el valor a los displays
+
 division_decenas_v4:
     movlw 10 ;mover 10 a w
     subwf var_A,F ;var_A - 10, 4 - 10
