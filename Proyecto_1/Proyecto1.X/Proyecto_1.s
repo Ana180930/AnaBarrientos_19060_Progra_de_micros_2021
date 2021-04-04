@@ -154,6 +154,8 @@ t2_int:
     bcf		TMR2IF	    ;apaga la bandera del timer 2
     goto	isr
     
+    
+    
 PSECT code, delta=2, abs ; delta = tamaño de cada instrucción
 ORG 100h ;posición para el código 
  
