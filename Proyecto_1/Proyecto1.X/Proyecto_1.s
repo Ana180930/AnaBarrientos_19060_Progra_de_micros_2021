@@ -421,6 +421,7 @@ amarillo_1:
     bcf	    bandera,amarillo	    ;Apaga la bandera de amarillo, via 1
     goto    revisar_cero01
 
+    
 amarillo_2:
     bcf	    bandera,parpadeo2	    ;Apaga la bandera de verde titilante	   
     bcf	    PORTD,5		    ;Apaga la led verde
