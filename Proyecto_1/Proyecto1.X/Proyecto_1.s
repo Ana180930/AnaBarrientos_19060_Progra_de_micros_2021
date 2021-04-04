@@ -355,6 +355,7 @@ Estado_01:
     btfsc   flag_sel,cero
     goto    reset_1
 
+    
 
     
 fin_estados:    
