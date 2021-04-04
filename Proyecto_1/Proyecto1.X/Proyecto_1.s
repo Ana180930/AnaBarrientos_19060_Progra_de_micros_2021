@@ -105,9 +105,7 @@ isr:			    ;Rutina de interrupción
     goto    t2_int
     btfsc   TMR1IF
     goto    t1_int
-    
-    
-    
+     
 pop:
     swapf   STATUS_TEMP,W   ;Regresa registro STATUS original a W
     movwf   STATUS	    ;Mueve w al registro STATUS.
@@ -147,6 +145,7 @@ t2_int:
     goto	encender
     apagar:
     bcf		bandera,int_verde_t
+    bcf		PORTD,7
     goto	fin_t2_int
     encender:	
     bsf		bandera,int_verde_t
@@ -349,17 +348,17 @@ fin_estados:
 return  
     
 verde_parpadeo_1:
-    bcf	    PORTE,2
-;    btfsc   bandera,int_verde_t
-;    goto    encender_1
-;    goto    apagar_1
-;    encender_1:
-;    bsf	    PORTE,4
-;    goto    fin_verde_parpadeo_1
-;    apagar_1:
-;    bcf	    PORTE,4
-;    fin_verde_parpadeo_1:
-     goto    revisar_amarillo
+    ;bcf	    PORTD,2
+    btfsc   bandera,int_verde_t
+    goto    encender_led
+    goto    apagar_led
+    encender_led:
+    bsf	    PORTD,2
+    goto    fin_subrutina
+    apagar_led:
+    bcf	    PORTD,2
+    fin_subrutina:
+    goto    revisar_amarillo
 ;       
 amarillo_1:
     bcf	    bandera,parpadeo
