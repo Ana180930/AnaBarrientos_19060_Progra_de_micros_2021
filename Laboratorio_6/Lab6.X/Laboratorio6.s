@@ -209,7 +209,7 @@ config_tmr2_temporizador:
     bcf		PIR1, 1	    ;limpiar bandera timer 2
     banksel	PR2
     movlw	122	    ;w = 122
-    movwf	PR2	    ;PR2 = 122
+    movwf	PR2	    ;PR2 = 122, tiempo de 250 ms
     return
 
 config_int_tmr1:
