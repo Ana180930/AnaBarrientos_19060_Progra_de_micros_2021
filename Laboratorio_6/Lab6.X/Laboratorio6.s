@@ -208,7 +208,7 @@ config_tmr2_temporizador:
     bsf		T2CON, 3    ;Postcaler de 16 (1 1 1 1)
     bcf		PIR1, 1	    ;limpiar bandera timer 2
     banksel	PR2
-    movlw	122	    ;w = 122
+    movlw	5	    ;w = 122
     movwf	PR2	    ;PR2 = 122, tiempo de 250 ms
     return
 

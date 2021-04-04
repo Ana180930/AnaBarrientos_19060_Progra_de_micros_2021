@@ -2612,20 +2612,20 @@ t1_int:
 
 t2_int:
     clrf TMR2 ;limpia el tmr2
-    decf dec_ledverde,F ;incrementa la variable para la led verde
-    btfsc STATUS,2
+    incf dec_ledverde,f ;incrementa la variable para la led verde
+    bcf ((PIR1) and 07Fh), 1 ;apaga la bandera del timer 2
+    btfss dec_ledverde,0
     goto apagar
     goto encender
     apagar:
     bcf bandera,6
-    bcf PORTD,7
     goto fin_t2_int
     encender:
     bsf bandera,6
-    bsf PORTD,7
     fin_t2_int:
-    bcf ((PIR1) and 07Fh), 1 ;apaga la bandera del timer 2
     goto isr
+
+
 
 PSECT code, delta=2, abs ; delta = tamaño de cada instrucción
 ORG 100h ;posición para el código
@@ -2657,14 +2657,15 @@ main:
     clrf PORTA
     clrf PORTC
     clrf PORTD
+    clrf PORTB
     bcf PORTE,0
-    bcf PORTB,3
-    bcf PORTB,4
-    bcf PORTB,5
-    bcf PORTB,7
-    bsf PORTB,0
-    bsf PORTB,1
-    bsf PORTB,2
+; bcf PORTB,3
+; bcf PORTB,4
+; bcf PORTB,5
+; bcf PORTB,7
+; bsf PORTB,0
+; bsf PORTB,1
+; bsf PORTB,2
 
     banksel PORTA ;De regreso a banco 0
     clrf PORTA
@@ -2680,7 +2681,7 @@ main:
     clrf var_dec2
     clrf var_dec3
     clrf flag_sel
-    clrf dec_ledverde
+    ;clrf dec_ledverde
     clrf var_A
     bsf flag,0
     bsf bandera,0

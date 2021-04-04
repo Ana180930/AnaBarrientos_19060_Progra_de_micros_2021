@@ -99,7 +99,7 @@ push:
     swapf   STATUS,W  ;Le da la vuelta al STATUS sin alterarlo y lo guarda en W
     movwf   STATUS_TEMP	    ;Muevo el STATUS al reves a STATUS temporal
 isr:			    ;Rutina de interrupción		    
-    btfsc   T0IF
+    btfsc   T0IF	    ;Revisa las banderas de interrución timer 1,2 y 0
     goto    t0_int
     btfsc   TMR2IF
     goto    t2_int
@@ -123,13 +123,12 @@ t0_int:
 t1_int:
     ;Valor inicial para el tmr1: TMR1H y TMR1L
     banksel	PORTA
-    ;bcf		STATUS,2	;Limpia la bandera de cero
-    decf	var_dec1,F
-    decf	var_dec2,F
-    decf	var_dec3,F
+    decf	var_dec1,F	;Decrementa la variable via 1    
+    decf	var_dec2,F	;Decrementa la variable via 2
+    decf	var_dec3,F	;Decrementa la variable via 3
     ;Bandera status zero
-    btfsc	STATUS,2
-    bsf		flag_sel,cero
+    btfsc	STATUS,2	;Revisa la bandera de cero
+    bsf		flag_sel,cero	;Si esta encendida, enciende una bandera reset
     movlw	0xC2	
     movwf	TMR1H	    ;Le carga 1100 0010 a los bits más significativos
     movlw	0xF7
@@ -139,23 +138,19 @@ t1_int:
 
 t2_int:
     clrf	TMR2		    ;limpia el tmr2
-    decf	dec_ledverde,F	    ;incrementa la variable para la led verde
-    btfsc	STATUS,2
-    goto	apagar
-    goto	encender
+    incf	dec_ledverde,f	    ;incrementa la variable para la led verde
+    bcf		TMR2IF		    ;apaga la bandera del timer 2
+    btfss	dec_ledverde,0	;Revisa si el bit menos significativo esta en 1
+    goto	apagar		;Si está en 0 apaga la bandera del parpadeo
+    goto	encender	;Si está en 1 enciende la bandera del parpadeo
     apagar:
     bcf		bandera,int_verde_t
-    bcf		PORTD,7
     goto	fin_t2_int
     encender:	
     bsf		bandera,int_verde_t
-    bsf		PORTD,7
     fin_t2_int:
-    bcf		TMR2IF	    ;apaga la bandera del timer 2
     goto	isr
-    
-    
-    
+      
 PSECT code, delta=2, abs ; delta = tamaño de cada instrucción
 ORG 100h ;posición para el código 
  
@@ -186,6 +181,7 @@ main:
     clrf    PORTA
     clrf    PORTC
     clrf    PORTD
+    clrf    PORTB
     bcf	    PORTE,0
     bcf	    PORTB,3
     bcf	    PORTB,4
@@ -201,7 +197,7 @@ main:
     clrf    PORTC	;Para un clear inicial en los pines
     clrf    PORTD
     clrf    PORTE
-    clrf    flag		;Limpiar variable banderas
+    clrf    flag	;Limpiar variable banderas
     clrf    TV1
     clrf    TV2
     clrf    TV3
@@ -214,9 +210,9 @@ main:
     bsf	    flag,flag_dis1
     bsf	    bandera,estado_1
     call    tiempos_vias
-    config_reloj
-    call    config_tmr1_temporizador
-    call    config_int_tmr1
+    config_reloj			;Configuracion del oscilador
+    call    config_tmr1_temporizador	;Configuraciones de los timers
+    call    config_int_tmr1		;Configuraciones de las interrupciones
     call    config_tmr2_temporizador
     call    config_int_tmr2
     call    config_tmr0_temporizador
@@ -224,10 +220,9 @@ main:
     
 ;-----------------------------Loop principal-----------------------------
 loop:  
-    
     call	Estados
     btfsc	flag_sel,disp
-    goto	seleccionar_displays ;ponerlo en una subrutina aparte
+    goto	seleccionar_displays 
     goto	loop
       
 ;----------------------------sub rutinas-----------------------------------
@@ -255,7 +250,7 @@ config_tmr1_temporizador:
     bsf		T1CON,0	    ;Bit on activado
     clrf	TMR1L
     clrf	TMR1H	    ;Limpiar los registros
-    movlw	0xC2	    ;Valor inicial para el TMR1
+    movlw	0xC2	    ;Valor inicial para el TMR1 de 49911
     movwf	TMR1H
     movlw	0xF7
     movwf	TMR1L	
@@ -290,12 +285,13 @@ config_int_tmr2:
     return
     
 tiempos_vias:
-    ;Cargar valores 
+    ;Carga valores iniciales
     movlw   10
     movwf   TV1
     movwf   TV2
     movwf   TV3
     ;Realiza la operacion del tiempo para los displays
+    ;-------------------------------vía -------------------------------------
     movf    TV1,W		;W = TV1 = 10
     movwf   var_dec1		;Var_dec1 = 10 (via 1)
     movwf   var_dec2		;Var_dec2 = 10 (via 2)
@@ -312,8 +308,8 @@ tiempos_vias:
 Estados:
     bcf	    PORTA,6
     bcf	    PORTA,7		;Display gris en gris
-    btfsc   bandera,estado_1
-    goto    Estado_01
+    btfsc   bandera,estado_1	;Si la bandera es 1, va a estado 1
+    goto    Estado_01		;Sino va al return
     goto    fin_estados
     ;goto    Estado_02
     
@@ -330,49 +326,48 @@ Estado_01:
     ;movwf   PORTD  
     ;Var_dec = 6
     
-    verde_t:
-    movlw   6
+    verde_t:			;Verde titilante
+    movlw   6			    
     subwf   var_dec1,w
-    btfsc   STATUS,2
-    bsf	    bandera,parpadeo
-    btfsc   bandera,parpadeo
-    goto    verde_parpadeo_1
+    btfsc   STATUS,2		;Revisa si el display llegó a 6
+    bsf	    bandera,parpadeo	;Si llegó, enciende la bandera parpadeo
+    btfsc   bandera,parpadeo	;Si no, revisa la bandera 
+    goto    verde_parpadeo_1	;Si la bandera está encendida va a la subrutina
     
-    revisar_amarillo:
-    movlw   3
-    subwf   var_dec1,W
-    btfsc   STATUS,2
-    bsf	    bandera,amarillo
-    btfsc   bandera,amarillo
-    goto    amarillo_1
+    revisar_amarillo:		;Amarillo
+    movlw   3			
+    subwf   var_dec1,W		;Revisa si el display llegó a 3
+    btfsc   STATUS,2		;Si llegó, enciende la bandera amarillo
+    bsf	    bandera,amarillo	
+    btfsc   bandera,amarillo	;Si la bandera amarillo está encendida
+    goto    amarillo_1		;Va a amarillo, si no regresa
 
 fin_estados:    
 return  
     
 verde_parpadeo_1:
-    ;bcf	    PORTD,2
-    btfsc   bandera,int_verde_t
-    goto    encender_led
-    goto    apagar_led
+    btfsc   bandera,int_verde_t	  ;Revisa la bandera parpadeo de la interrupcion
+    goto    encender_led	  ;Si está encendida, enciende la led
+    goto    apagar_led		  ;Si no, apago la led
     encender_led:
     bsf	    PORTD,2
     goto    fin_subrutina
     apagar_led:
     bcf	    PORTD,2
     fin_subrutina:
-    goto    revisar_amarillo
+    goto    revisar_amarillo	    ;Regresa a amarillo
 ;       
 amarillo_1:
-    bcf	    bandera,parpadeo
-    bcf	    PORTD,5
-    movlw   01001010B
+    bcf	    bandera,parpadeo	    ;Apaga la bandera de verde titilante	   
+    bcf	    PORTD,5		    ;Apaga la led verde
+    movlw   01001010B		    ;Enciende la led amarilla, vía 1
     movwf   PORTD
-    bcf	    bandera,amarillo
+    bcf	    bandera,amarillo	    ;Apaga la bandera de amarillo, via 1
     goto    fin_estados
     
 seleccionar_displays:
-    bcf	    flag_sel,disp	;apaga la bandera para selección
-    clrf    PORTA		;limpia puerto d
+    bcf	    flag_sel,disp	;Apaga la bandera para selección
+    clrf    PORTA		;Limpia puerto d
     clrf    decenas_v1
     clrf    unidades_v1
     clrf    decenas_v2
@@ -385,19 +380,19 @@ seleccionar_displays:
     btfsc   flag,flag_dis1	;Revisa si el display 1 está encendido
     goto    display_2		;si está encendido,se enciende display 2
     btfsc   flag,flag_dis2	;Revisa si el display 2 está encendido
-    goto    display_3		;si está encendido,se enciende display 2
-    btfsc   flag,flag_dis3	;Revisa si el display 2 está encendido
-    goto    display_4		;si está encendido,se enciende display 2
-    btfsc   flag,flag_dis4	;Revisa si el display 2 está encendido
-    goto    display_5		;si está encendido,se enciende display 2
-    btfsc   flag,flag_dis5	;Revisa si el display 2 está encendido
-    goto    display_6		;si está encendido,se enciende display 2
-    btfsc   flag,flag_dis6	;Revisa si el display 2 está encendido
-    goto    display_7		;si está encendido,se enciende display 2
-    btfsc   flag,flag_dis7	;Revisa si el display 2 está encendido
-    goto    display_8		;si está encendido,se enciende display 2
-    btfsc   flag,flag_dis8	;Revisa si el display 2 está encendido
-    goto    display_1		;si está encendido,se enciende display 2
+    goto    display_3		;si está encendido,se enciende display 3
+    btfsc   flag,flag_dis3	;Revisa si el display 3 está encendido
+    goto    display_4		;si está encendido,se enciende display 4
+    btfsc   flag,flag_dis4	;Revisa si el display 4 está encendido
+    goto    display_5		;si está encendido,se enciende display 5
+    btfsc   flag,flag_dis5	;Revisa si el display 5 está encendido
+    goto    display_6		;si está encendido,se enciende display 6
+    btfsc   flag,flag_dis6	;Revisa si el display 6 está encendido
+    goto    display_7		;si está encendido,se enciende display 7
+    btfsc   flag,flag_dis7	;Revisa si el display 7 está encendido
+    goto    display_8		;si está encendido,se enciende display 8
+    btfsc   flag,flag_dis8	;Revisa si el display 8 está encendido
+    goto    display_1		;si está encendido,se enciende display 1
     goto    loop
     
 display_2:
@@ -412,55 +407,59 @@ display_1:
     movf    var_display_1,W	;Mover variable cargada a W
     movwf   PORTC		;Cargamos el valor al puerto c
     bsf	    PORTA,1		;encedemos el display 1
-    bcf	    flag,flag_dis8	;Apaga la bandera del display 2
+    bcf	    flag,flag_dis8	;Apaga la bandera del display 8
     bsf	    flag,flag_dis1	;Enciende la bandera del display 1
     goto    loop    
+    
 display_3:
     movf    var_display_3,W	;Mover variable cargada a W
     movwf   PORTC		;Cargamos el valor al puerto c
-    bsf	    PORTA,2		;encedemos el display 2
-    bcf	    flag,flag_dis2	;Apaga la bandera del display 1
-    bsf	    flag,flag_dis3	;Enciende la bandera display 2
+    bsf	    PORTA,2		;encedemos el display 3
+    bcf	    flag,flag_dis2	;Apaga la bandera del display 2
+    bsf	    flag,flag_dis3	;Enciende la bandera display 3
     goto    loop
+    
 display_4:
     movf    var_display_4,W	;Mover variable cargada a W
     movwf   PORTC		;Cargamos el valor al puerto c
-    bsf	    PORTA,3		;encedemos el display 2
-    bcf	    flag,flag_dis3	;Apaga la bandera del display 1
-    bsf	    flag,flag_dis4	;Enciende la bandera display 2
+    bsf	    PORTA,3		;encedemos el display 4
+    bcf	    flag,flag_dis3	;Apaga la bandera del display 3
+    bsf	    flag,flag_dis4	;Enciende la bandera display 4
     goto    loop
 display_5:
     movf    var_display_5,W	;Mover variable cargada a W
     movwf   PORTC		;Cargamos el valor al puerto c
-    bsf	    PORTA,4		;encedemos el display 2
-    bcf	    flag,flag_dis4	;Apaga la bandera del display 1
-    bsf	    flag,flag_dis5	;Enciende la bandera display 2
+    bsf	    PORTA,4		;encedemos el display 5
+    bcf	    flag,flag_dis4	;Apaga la bandera del display 4
+    bsf	    flag,flag_dis5	;Enciende la bandera display 5
     goto    loop
+    
 display_6:
     movf    var_display_6,W	;Mover variable cargada a W
     movwf   PORTC		;Cargamos el valor al puerto c
-    bsf	    PORTA,5		;encedemos el display 2
-    bcf	    flag,flag_dis5	;Apaga la bandera del display 1
-    bsf	    flag,flag_dis6	;Enciende la bandera display 2
+    bsf	    PORTA,5		;encedemos el display 6
+    bcf	    flag,flag_dis5	;Apaga la bandera del display 5
+    bsf	    flag,flag_dis6	;Enciende la bandera display 6
     goto    loop
        
 display_7:
     movf    var_display_7,W	;Mover variable cargada a W
     movwf   PORTC		;Cargamos el valor al puerto c
-    bsf	    PORTA,6		;encedemos el display 2
-    bcf	    flag,flag_dis6	;Apaga la bandera del display 1
-    bsf	    flag,flag_dis7	;Enciende la bandera display 2
+    bsf	    PORTA,6		;encedemos el display 7
+    bcf	    flag,flag_dis6	;Apaga la bandera del display 6
+    bsf	    flag,flag_dis7	;Enciende la bandera display 7
     goto    loop
+    
 display_8:
     movf    var_display_8,W	;Mover variable cargada a W
     movwf   PORTC		;Cargamos el valor al puerto c
-    bsf	    PORTA,7		;encedemos el display 2
-    bcf	    flag,flag_dis7	;Apaga la bandera del display 1
-    bsf	    flag,flag_dis8	;Enciende la bandera display 2
+    bsf	    PORTA,7		;encedemos el display 8
+    bcf	    flag,flag_dis7	;Apaga la bandera del display 7
+    bsf	    flag,flag_dis8	;Enciende la bandera display 8
     goto    loop
     
 valores_division:
-    movf    var_dec1,W
+    movf    var_dec1,W		;Carga el valor a los displays
     movwf   var_A
 ;--------------------------------- vía 1 -----------------------------------    
 division_decenas_v1:
@@ -493,7 +492,7 @@ division_unidades_v1:
 
 ;----------------------------------- vía 2 -----------------------------------
     movf    var_dec2,W
-    movwf   var_A		 ;Mover W a la variable, A = 4
+    movwf   var_A		 ;Carga el valor a los displays
 division_decenas_v2:
     movlw   10			 ;mover 10 a w 
     subwf   var_A,F		 ;var_A - 10, 4 - 10		    
@@ -523,9 +522,8 @@ division_unidades_v2:
     movwf   var_display_4		;Regresa los bits modificados    
        
 ;--------------------------------via 3----------------------------------------
-;movf    var_dec1,W
     movf    var_dec3,W
-    movwf   var_A		    ;Mover W a la variable, A = 4
+    movwf   var_A		 ;Carga el valor a los displays
 
 division_decenas_v3:
     movlw   10			 ;mover 10 a w 
@@ -558,7 +556,7 @@ division_unidades_v3:
 
 ;-------------------------------via 4-----------------------------------------
     movlw   10
-    movwf   var_A		 ;Mover W a la variable, A = 4
+    movwf   var_A		 ;Carga el valor a los displays
 division_decenas_v4:
     movlw   10			 ;mover 10 a w 
     subwf   var_A,F		 ;var_A - 10, 4 - 10		    
