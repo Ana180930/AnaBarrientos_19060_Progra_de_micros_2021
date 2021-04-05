@@ -327,6 +327,7 @@ Estados:
     goto    Estado_03
     goto    fin_estados
 
+    
 ;-----------------------------------Estados-----------------------------------
 Estado_01:
 ;Displays y leds v1 = verde (10 s), via 2 = rojo (10s), via 3 = rojo (20s)   
