@@ -372,6 +372,7 @@ Estado_02:
     clrf    dec_ledverde
 
     verde_t02:
+    
 fin_estados:    
 return  
     
