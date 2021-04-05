@@ -334,12 +334,17 @@ Estado_01:
     btfss   flag_sel,cero	;Bandera reseteo
     goto    verde_t01
     ;Carga valor a los displays
-    bcf     flag_sel,cero	;esto va en el estado 3
+    movf    TV1,W		;W = TV1 = 10
+    movwf   var_dec1		;Var_dec1 = 10 (via 1)
+    movwf   var_dec2		;Var_dec2 = 10 (via 2)
+    addwf   TV2,W		;W = TV1 + TV2 = 20		
+    movwf   var_dec3		;Var_dec3 = 20
+    ;Verde
+    movlw   01001100B		;Verde v1, rojo v2, rojo v3
+    movwf   PORTD 
+    bcf     flag_sel,cero
     bcf	    bandera,parpadeo01
     bcf	    bandera,amarillo
-    ;movlw   01001100B		;Verde v1, rojo v2, rojo v3
-    ;movwf   PORTD  
-    ;Var_dec = 6
     
     verde_t01:			;Verde titilante
     movlw   6			    
@@ -450,7 +455,13 @@ Estado_03:
     btfsc   bandera,amarillo	;Si la bandera amarillo está encendida
     goto    amarillo_3		;Va a amarillo, si no regresa
     
-   
+    revisar_cero03:
+    movlw   0
+    subwf   var_dec3,W
+    btfsc   STATUS,2
+    bsf	    flag_sel,cero
+    btfsc   flag_sel,cero
+    goto    reset_3
     
     
 fin_estados:    
@@ -536,6 +547,17 @@ amarillo_3:
     movlw   10001001B		    ;Enciende la led amarilla, vía 1
     movwf   PORTD
     bcf	    bandera,amarillo	    ;Apaga la bandera de amarillo, via 1
+    goto    revisar_cero03
+    
+reset_3:
+    bcf	    bandera,estado_3	    ;Apaga la bandera estado 3	
+    bsf	    bandera,estado_1	    ;Enciende la bandera estado 1
+    clrf    var_dec1
+    clrf    var_dec2
+    clrf    var_dec3		    ;Quita el valor anterior
+    clrf    PORTD
+    bcf	    bandera,parpadeo01
+    bcf	    bandera,amarillo	    ;Apago la bandera de led amarillo
     goto    fin_estados
     
 seleccionar_displays:
