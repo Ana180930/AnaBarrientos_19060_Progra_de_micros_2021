@@ -310,8 +310,8 @@ tiempos_vias:
     movwf   var_dec3		;Var_dec3 = 20
     ;Verde
     movlw   01001100B		;Verde v1, rojo v2, rojo v3
-    movwf   PORTD 
-    bcf     flag_sel,cero
+    movwf   PORTD		;Lo muestra en el puerto D
+    bcf     flag_sel,cero	;Clear en las banderas 
     bcf	    bandera,parpadeo01
     bcf	    bandera,amarillo
     return
@@ -319,13 +319,13 @@ tiempos_vias:
 Estados:
     bcf	    PORTA,6
     bcf	    PORTA,7		;Display gris en gris
-    btfsc   bandera,estado_1	;Si la bandera es 1, va a estado 1
-    goto    Estado_01		;Sino va al return
-    btfsc   bandera,estado_2
-    goto    Estado_02
-    btfsc   bandera,estado_3
-    goto    Estado_03
-    goto    fin_estados
+    btfsc   bandera,estado_1	;Revisa si la bandera estado 1 está encendida
+    goto    Estado_01		;Si está, va a estado 1 
+    btfsc   bandera,estado_2	;Si no, revisa si la bandera estado 2 está enc.
+    goto    Estado_02		;Si está, va a estado 2
+    btfsc   bandera,estado_3	;Si no, revisa si la bandera estado 3 está ence.
+    goto    Estado_03		;Si está, va a estado 3
+    goto    fin_estados		;Si no, regresa al loop
 
     
 ;-----------------------------------Estados-----------------------------------
@@ -339,11 +339,11 @@ Estado_01:
     movwf   var_dec2		;Var_dec2 = 10 (via 2)
     addwf   TV2,W		;W = TV1 + TV2 = 20		
     movwf   var_dec3		;Var_dec3 = 20
-    ;Verde
+    ;LEDS vía 1
     movlw   01001100B		;Verde v1, rojo v2, rojo v3
     movwf   PORTD 
-    bcf     flag_sel,cero
-    bcf	    bandera,parpadeo01
+    bcf     flag_sel,cero	;apaga la bandera de reset 
+    bcf	    bandera,parpadeo01	;Clear banderas
     bcf	    bandera,amarillo
     
     verde_t01:			;Verde titilante
@@ -360,14 +360,14 @@ Estado_01:
     btfsc   STATUS,2		;Si llegó, enciende la bandera amarillo
     bsf	    bandera,amarillo	
     btfsc   bandera,amarillo	;Si la bandera amarillo está encendida
-    goto    amarillo_1		;Va a amarillo, si no regresa
+    goto    amarillo_1		;Va a amarillo, si no va a revisar cero 01
     
     revisar_cero01:
     movlw   0
-    subwf   var_dec1,W
-    btfsc   STATUS,2
-    bsf	    flag_sel,cero
-    btfsc   flag_sel,cero
+    subwf   var_dec1,W		;Revisa si el display llegó a 0
+    btfsc   STATUS,2		;Si llegó, enciende la bandera de reset
+    bsf	    flag_sel,cero	;Si no, revisa si la bandera reset esta encen.
+    btfsc   flag_sel,cero	;Si está encendida, va a resetear el display
     goto    reset_1
     
 Estado_02:
@@ -406,14 +406,14 @@ Estado_02:
     btfsc   STATUS,2		;Si llegó, enciende la bandera amarillo
     bsf	    bandera,amarillo	
     btfsc   bandera,amarillo	;Si la bandera amarillo está encendida
-    goto    amarillo_2		;Va a amarillo, si no regresa
+    goto    amarillo_2		;Va a amarillo, si no va a cero 02
     
     revisar_cero02:
     movlw   0
-    subwf   var_dec2,W
-    btfsc   STATUS,2
-    bsf	    flag_sel,cero
-    btfsc   flag_sel,cero
+    subwf   var_dec2,W		;Revisa si el display llegó a 0
+    btfsc   STATUS,2		;Si llegó, enciende la bandera de reset
+    bsf	    flag_sel,cero	;Si no, revisa si la bandera reset está encendi.
+    btfsc   flag_sel,cero	;Si está encendida, va resetear
     goto    reset_2
  
 Estado_03:
@@ -457,10 +457,10 @@ Estado_03:
     
     revisar_cero03:
     movlw   0
-    subwf   var_dec3,W
-    btfsc   STATUS,2
-    bsf	    flag_sel,cero
-    btfsc   flag_sel,cero
+    subwf   var_dec3,W		;Revisa si el display llegó a 0
+    btfsc   STATUS,2		;Si llegó, enciende la bandera de reset
+    bsf	    flag_sel,cero	;Si no, revisa si la bandera reset está encendi.
+    btfsc   flag_sel,cero	;Si está encendida, va a reset 3
     goto    reset_3
     
     
@@ -468,9 +468,9 @@ fin_estados:
 return  
     
 verde_parpadeo_1:
-    btfsc   bandera02,int_verde_t1  ;Revisa la bandera parpadeo de la interrupcion
+    btfsc   bandera02,int_verde_t1  ;Revisa la bandera parpadeo de la interrup.
     goto    encender_led01	  ;Si está encendida, enciende la led
-    goto    apagar_led01	  ;Si no, apago la led
+    goto    apagar_led01	  ;Si no, apaga la led
     encender_led01:
     bsf	    PORTD,2
     goto    fin_subrutina01
@@ -481,11 +481,11 @@ verde_parpadeo_1:
      
 amarillo_1:
     bcf	    bandera,parpadeo01	    ;Apaga la bandera de verde titilante	   
-    bcf	    PORTD,5		    ;Apaga la led verde
+    bcf	    PORTD,5		    ;Apaga la led verde via 1
     movlw   01001010B		    ;Enciende la led amarilla, vía 1
     movwf   PORTD
     bcf	    bandera,amarillo	    ;Apaga la bandera de amarillo, via 1
-    goto    revisar_cero01
+    goto    revisar_cero01	    ;Regresa a cero 01
 
 reset_1:
     bcf	    bandera,estado_1	    ;Apaga la bandera estado 1	
@@ -496,10 +496,10 @@ reset_1:
     clrf    PORTD
     bcf	    bandera,parpadeo02
     bcf	    bandera,amarillo	    ;Apago la bandera de led amarillo
-    goto    fin_estados
+    goto    fin_estados		    ;Regresa al loop
 
 verde_parpadeo_2:
-    btfsc   bandera02,int_verde_t2  ;Revisa la bandera parpadeo de la interrupcion
+    btfsc   bandera02,int_verde_t2  ;Revisa la bandera parpadeo de la interrup.
     goto    encender_led02	  ;Si está encendida, enciende la led
     goto    apagar_led02	  ;Si no, apago la led
     encender_led02:
@@ -508,15 +508,15 @@ verde_parpadeo_2:
     apagar_led02:
     bcf	    PORTD,5
     fin_subrutina02:
-    goto    revisar_amarillo02		   ;Regresa a amarillo 02
+    goto    revisar_amarillo02	    ;Regresa a amarillo 02
 
 amarillo_2:
     bcf	    bandera,parpadeo02	    ;Apaga la bandera de verde titilante	   
-    bcf	    PORTD,5		    ;Apaga la led verde
-    movlw   01010001B		    ;Enciende la led amarilla, vía 1
+    bcf	    PORTD,5		    ;Apaga la led verde via 2
+    movlw   01010001B		    ;Enciende la led amarilla, vía 2
     movwf   PORTD
     bcf	    bandera,amarillo	    ;Apaga la bandera de amarillo, via 1
-    goto    revisar_cero02
+    goto    revisar_cero02	    ;Regresa a cero 02
     
 reset_2:
     bcf	    bandera,estado_2	    ;Apaga la bandera estado 2	
@@ -527,10 +527,10 @@ reset_2:
     clrf    PORTD
     bcf	    bandera,parpadeo03
     bcf	    bandera,amarillo	    ;Apago la bandera de led amarillo
-    goto    fin_estados
+    goto    fin_estados		    ;Regresa al loop
 
 verde_parpadeo_3:
-    btfsc   bandera02,int_verde_t3 ;Revisa la bandera parpadeo de la interrupcion
+    btfsc   bandera02,int_verde_t3 ;Revisa la bandera parpadeo de la interrup.
     goto    encender_led03	   ;Si está encendida, enciende la led
     goto    apagar_led03	   ;Si no, apago la led
     encender_led03:
@@ -544,10 +544,10 @@ verde_parpadeo_3:
 amarillo_3:
     bcf	    bandera,parpadeo03	    ;Apaga la bandera de verde titilante	   
     bcf	    PORTE,0		    ;Apaga la led verde titilante de la via 3
-    movlw   10001001B		    ;Enciende la led amarilla, vía 1
+    movlw   10001001B		    ;Enciende la led amarilla, vía 3
     movwf   PORTD
-    bcf	    bandera,amarillo	    ;Apaga la bandera de amarillo, via 1
-    goto    revisar_cero03
+    bcf	    bandera,amarillo	    ;Apaga la bandera de amarillo
+    goto    revisar_cero03	    ;Regresa a cero 03
     
 reset_3:
     bcf	    bandera,estado_3	    ;Apaga la bandera estado 3	
@@ -558,12 +558,12 @@ reset_3:
     clrf    PORTD
     bcf	    bandera,parpadeo01
     bcf	    bandera,amarillo	    ;Apago la bandera de led amarillo
-    goto    fin_estados
+    goto    fin_estados		    ;Regreso al loop
     
 seleccionar_displays:
     bcf	    flag_sel,disp	   ;Apaga la bandera para selección
     clrf    PORTA		   ;Limpia puerto d
-    clrf    decenas_v1
+    clrf    decenas_v1		   ;Limpia las variables de division
     clrf    unidades_v1
     clrf    decenas_v2
     clrf    unidades_v2
@@ -683,7 +683,7 @@ division_unidades_v1:
     subwf   unidades_v1,W	;Unidades = Unidades - 1
     andlw   00001111B		;Agrega los bits menos significativos a w
     call    tabla
-    movwf   var_display_1		;Regresa los bits modificados
+    movwf   var_display_1	;Regresa los bits modificados
 ;----------------------------------- vía 2 -----------------------------------
     movf    var_dec2,W
     movwf   var_A		 ;Carga el valor a los displays
@@ -701,7 +701,7 @@ division_decenas_v2:
     movf    decenas_v2, W		;Mueve la variable a W
     andlw   00001111B		;Agrega los bits menos significativos a w
     call    tabla
-    movwf   var_display_3		;Regresa los bits modificados
+    movwf   var_display_3	;Regresa los bits modificados
     
 division_unidades_v2:
     movlw   1
@@ -713,7 +713,7 @@ division_unidades_v2:
     subwf   unidades_v2,W	;Unidades = Unidades - 1
     andlw   00001111B		;Agrega los bits menos significativos a w
     call    tabla
-    movwf   var_display_4		;Regresa los bits modificados    
+    movwf   var_display_4	;Regresa los bits modificados    
        
 ;--------------------------------via 3----------------------------------------
     movf    var_dec3,W
@@ -732,7 +732,8 @@ division_decenas_v3:
     movf    decenas_v3, W		;Mueve la variable a W
     andlw   00001111B		;Agrega los bits menos significativos a w
     call    tabla
-    movwf   var_display_5		;Regresa los bits modificados
+    movwf   var_display_5	;Regresa los bits modificados
+
 division_unidades_v3:
     movlw   1
     subwf   var_A,F		 ;var_A - 1, el resultado lo guarda en A	    
@@ -743,7 +744,7 @@ division_unidades_v3:
     subwf   unidades_v3,W	;Unidades = Unidades - 1
     andlw   00001111B		;Agrega los bits menos significativos a w
     call    tabla
-    movwf   var_display_6		;Regresa los bits modificados   
+    movwf   var_display_6	;Regresa los bits modificados   
 ;-------------------------------via 4-----------------------------------------
     movlw   10
     movwf   var_A		 ;Carga el valor a los displays
@@ -761,7 +762,8 @@ division_decenas_v4:
     movf    decenas_v4, W		;Mueve la variable a W
     andlw   00001111B		;Agrega los bits menos significativos a w
     call    tabla
-    movwf   var_display_7		;Regresa los bits modificados
+    movwf   var_display_7	;Regresa los bits modificados
+
 division_unidades_v4:
     movlw   1
     subwf   var_A,F		 ;var_A - 1, el resultado lo guarda en A	    
@@ -772,7 +774,7 @@ division_unidades_v4:
     subwf   unidades_v4,W	;Unidades = Unidades - 1
     andlw   00001111B		;Agrega los bits menos significativos a w
     call    tabla
-    movwf   var_display_8		;Regresa los bits modificados      
+    movwf   var_display_8	;Regresa los bits modificados      
     return
     
  
