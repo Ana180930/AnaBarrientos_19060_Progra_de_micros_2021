@@ -450,6 +450,7 @@ Estado_03:
     btfsc   bandera,amarillo	;Si la bandera amarillo está encendida
     goto    amarillo_3		;Va a amarillo, si no regresa
     
+   
     
     
 fin_estados:    
