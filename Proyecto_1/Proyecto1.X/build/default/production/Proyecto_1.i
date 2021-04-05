@@ -2922,13 +2922,7 @@ Estado_03:
     btfsc bandera,5 ;Si no, revisa la bandera
     goto verde_parpadeo_3 ;Si la bandera está encendida va a la subrutina
 
-    revisar_amarillo03: ;Amarillo
-    movlw 3
-    subwf var_dec3,W ;Revisa si el display llegó a 3
-    btfsc STATUS,2 ;Si llegó, enciende la bandera 6
-    bsf bandera,6
-    btfsc bandera,6 ;Si la bandera 6 está encendida
-    goto amarillo_3
+
 
 fin_estados:
 return
@@ -2992,7 +2986,7 @@ reset_2:
     clrf var_dec3 ;Quita el valor anterior
     clrf PORTD
     bcf bandera,5
-    ;bcf bandera,6 ;Apago la bandera de led 6
+    bcf bandera,6 ;Apago la bandera de led 6
     goto fin_estados
 
 verde_parpadeo_3:
@@ -3007,14 +3001,7 @@ verde_parpadeo_3:
     fin_subrutina03:
     goto fin_estados ;Regresa a 6 02
 
-amarillo_3: ;Amarillo
-    bcf bandera,5 ;Apaga la bandera de verde titilante
-    bcf PORTE,0 ;Apaga la led verde via 3
-    movlw 00001001B ;Enciende la led amarilla, vía 1
-    bsf PORTE,0
-    movwf PORTD
-    bcf bandera,6 ;Apaga la bandera de 6, via 1
-    goto fin_estados
+
 
 seleccionar_displays:
     bcf flag_sel,0 ;Apaga la bandera para selección
