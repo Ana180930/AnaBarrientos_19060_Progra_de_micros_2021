@@ -2795,8 +2795,8 @@ Estados:
     bcf PORTA,7 ;Display gris en gris
     btfsc bandera,0 ;Si la bandera es 1, va a estado 1
     goto Estado_01 ;Sino va al return
-    ;btfsc bandera,1
-    ;goto Estado_02
+    btfsc bandera,1
+    goto Estado_02
     goto fin_estados
 ;-----------------------------------Estados-----------------------------------
 Estado_01:
@@ -2826,7 +2826,6 @@ Estado_01:
     bsf bandera,5
     btfsc bandera,5 ;Si la bandera 5 está encendida
     goto amarillo_1 ;Va a 5, si no regresa
-
     revisar_cero01:
     movlw 0
     subwf var_dec1,W
@@ -2835,8 +2834,24 @@ Estado_01:
     btfsc flag_sel,2
     goto reset_1
 
+Estado_02:
+    ;Displays y leds v1 = verde (10 s), via 2 = rojo (10s), via 3 = rojo (20s)
+    btfss flag_sel,2 ;Bandera reseteo
+    goto verde_t02
+    movf TV2,W ;Actuliza los valores y limpia banderas,registros
+    movwf var_dec2
+    movwf var_dec3
+    addwf TV3,W
+    movwf var_dec1
+    clrf PORTD
+    movlw 01100001B ;Via 2: rojo v1, verde v2, rojo v3
+    movwf PORTD
+    bcf flag_sel,2
+    bcf bandera,4
+    bcf bandera,5
+    clrf dec_ledverde
 
-
+    verde_t02:
 fin_estados:
 return
 
@@ -2859,7 +2874,6 @@ amarillo_1:
     movwf PORTD
     bcf bandera,5 ;Apaga la bandera de 5, via 1
     goto revisar_cero01
-
 reset_1:
     bcf bandera,0 ;Apaga la bandera estado 1
     bsf bandera,1 ;Enciende la bandera estado 2
@@ -3059,12 +3073,9 @@ division_unidades_v3:
     andlw 00001111B ;Agrega los bits menos significativos a w
     call tabla
     movwf var_display_6 ;Regresa los bits modificados
-
-
 ;-------------------------------via 4-----------------------------------------
     movlw 10
     movwf var_A ;Carga el valor a los displays
-
 division_decenas_v4:
     movlw 10 ;mover 10 a w
     subwf var_A,F ;var_A - 10, 4 - 10
