@@ -6,8 +6,7 @@
 ;Compilador: pic-as (v2.30), MPLABX v5.40
 ;******************************************************************************
 PROCESSOR 16F887 // Para indicar que microprocesador es 
-    
-#include <xc.inc> ;Sirve para definir los registros
+#include <xc.inc> 
 #include "Macros_proyecto1.s"
     
 ;Configuration word 1
@@ -50,16 +49,11 @@ PSECT udata_bank0 ;PSECT = sección del programa
     TV1:		    DS 1;1 byte
     TV2:		    DS 1;1 byte
     TV3:		    DS 1;1 byte
-    verde_v1:		    DS 1;1 byte
-    amarillo_v1:	    DS 1;1 byte
-    rojo_v1:		    DS 1;1 byte
-    verde_v2:		    DS 1;1 byte
-    amarillo_v2:	    DS 1;1 byte
-    rojo_v2:		    DS 1;1 byte
-    verde_v3:		    DS 1;1 byte
-    amarillo_v3:	    DS 1;1 byte
-    rojo_v3:		    DS 1;1 byte
-PSECT udata_shr ;memoria compartida, variables para interrupciones
+    var_disp_gris:	    DS 1;1 byte
+    tiempo_temp01:	    DS 1;1 byte
+    tiempo_temp02:	    DS 1;1 byte
+    tiempo_actual:	    DS 1;1 byte
+;PSECT udata_shr ;memoria compartida, variables para interrupciones
     W_TEMP:	    DS 1 ;1 byte
     STATUS_TEMP:    DS 1 ;1 byte
     flag_sel:	    DS 1 
@@ -68,6 +62,7 @@ PSECT udata_shr ;memoria compartida, variables para interrupciones
     #define	    cero    2
     #define	    paso01  3
     #define	    paso02  4
+    #define	    gris    5    
     flag:	    DS 1 ;8 banderas
     #define	    flag_dis1 0
     #define	    flag_dis2 1
@@ -77,7 +72,7 @@ PSECT udata_shr ;memoria compartida, variables para interrupciones
     #define	    flag_dis6 5
     #define	    flag_dis7 6
     #define	    flag_dis8 7
-    bandera:	    DS	2 ;8 banderas
+    bandera:	    DS	1 ;8 banderas
     #define	    estado_1	 0
     #define	    estado_2	 1
     #define	    estado_3	 2
@@ -89,6 +84,16 @@ PSECT udata_shr ;memoria compartida, variables para interrupciones
     #define	    int_verde_t1 0
     #define	    int_verde_t2 1
     #define	    int_verde_t3 2
+    #define	    modos	 3
+    #define	    decr	 4
+    #define	    incr	 5
+    bandera03:	    DS	1 ;8 banderas
+    #define	    modo01	0
+    #define	    modo02	1
+    #define	    modo03	2
+    #define	    modo04	3
+    #define	    modo05	4
+    
     
 PSECT resVect, class=CODE, abs, delta=2 ;abs = posición absoluta en donde se 
 ;------------------ vector resest -----------------
@@ -111,6 +116,8 @@ isr:			    ;Rutina de interrupción
     goto    t2_int
     btfsc   TMR1IF
     goto    t1_int
+    btfsc   RBIF	 ;Revisa bandera del puerto b
+    goto    rbif_portb	 
      
 pop:
     swapf   STATUS_TEMP,W   ;Regresa registro STATUS original a W
@@ -141,13 +148,16 @@ t1_int:
     movwf	TMR1L	    ;Le carga 1111 0111 a los bits menos significativos
     bcf		PIR1, 0	    ;limpia la bandera del timer1
     goto	isr
+
 t2_int:
     clrf	TMR2		    ;limpia el tmr2
+    bcf		TMR2IF	
     incf	dec_ledverde,f	    ;incrementa la variable para la led verde
-    bcf		TMR2IF		    ;apaga la bandera del timer 2
     btfss	dec_ledverde,0	;Revisa si el bit menos significativo esta en 1
     goto	apagar		;Si está en 0 apaga la bandera del parpadeo
+    btfsc	dec_ledverde,0
     goto	encender	;Si está en 1 enciende la bandera del parpadeo
+    goto fin_t2_int
     apagar:
     bcf		bandera02,int_verde_t1
     bcf		bandera02,int_verde_t2
@@ -158,6 +168,18 @@ t2_int:
     bsf		bandera02,int_verde_t2
     bsf		bandera02,int_verde_t3
     fin_t2_int:
+    goto	isr
+    
+rbif_portb:
+    
+    btfss	PORTB,0	    ;Revisa si el botón modo está presionado
+    bsf		bandera02,modos
+    btfss	PORTB,1	    ;Revisa si el botón incrementar está presionado
+    bsf		bandera02,incr
+    btfss	PORTB,2
+    bsf		bandera02,decr
+    movf PORTB,W
+    bcf		INTCON,0    ;Apaga la bandera de la interrupción
     goto	isr
       
 PSECT code, delta=2, abs ; delta = tamaño de cada instrucción
@@ -187,18 +209,18 @@ main:
     clrf    ANSELH	;pines digitales
     
     banksel TRISA	;Entradas/salidas
-    clrf    PORTA
-    clrf    PORTC
-    clrf    PORTD
-    clrf    PORTB
-    bcf	    PORTE,0
-    bcf	    PORTB,3
-    bcf	    PORTB,4
-    bcf	    PORTB,5
-    bcf	    PORTB,7
-    bsf	    PORTB,0 
-    bsf	    PORTB,1
-    bsf	    PORTB,2
+    clrf    TRISA
+    clrf    TRISC
+    clrf    TRISD
+;    clrf    PORTB
+    bcf	    TRISE,0
+    bcf	    TRISB,3
+    bcf	    TRISB,4
+    bcf	    TRISB,5
+    bcf	    TRISB,7
+    bsf	    TRISB,0 
+    bsf	    TRISB,1
+    bsf	    TRISB,2
     
     banksel PORTA	;De regreso a banco 0
     clrf    PORTA
@@ -208,7 +230,12 @@ main:
     clrf    PORTE
     clrf    flag	;Limpiar variable banderas
     clrf    bandera
+    clrf    var_disp_gris
+    clrf    tiempo_temp01
+    clrf    tiempo_temp02
+    ;clrf    tiempo_temp03
     clrf    bandera02
+    clrf    bandera03
     clrf    TV1
     clrf    TV2
     clrf    TV3
@@ -220,17 +247,25 @@ main:
     clrf    var_A
     bsf	    flag,flag_dis1
     bsf	    bandera,estado_1
+    bsf	    bandera03,modo01		;Enciende la bandera del modo 1
     call    tiempos_vias
     config_reloj			;Configuracion del oscilador
+  
+    pull_ups
     call    config_tmr1_temporizador	;Configuraciones de los timers
     call    config_int_tmr1		;Configuraciones de las interrupciones
     call    config_tmr2_temporizador
     call    config_int_tmr2
     call    config_tmr0_temporizador
     call    config_int_tmr0
+    call    config_io_portb
+    
+    
     
 ;-----------------------------Loop principal-----------------------------
-loop:  
+loop:
+    call	Botones
+    call	Revisa_modos
     call	Estados
     btfsc	flag_sel,disp
     goto	seleccionar_displays 
@@ -251,6 +286,7 @@ config_int_tmr0:
     ;bsf	    INTCON, 7	;Habilitar todas las interrupciones
     bsf		T0IE	    ;Habilitar interrupción tmr0
     bcf		T0IF	    ;Limpiar bandera del tmr0
+    bsf		RBIE	    ;Habilitar interrupción portb
     return
     
 config_tmr1_temporizador:
@@ -294,6 +330,83 @@ config_int_tmr2:
     banksel	PIE1	    ;Banco 1
     bsf		PIE1,1	    ;Habilita la interrupción tmr2	
     return
+
+config_io_portb:		;Configuración para interrupción portb
+    banksel	IOCB
+    bsf		IOCB, 0		;Configuración para pin 1 como interrupción
+    bsf		IOCB, 1		;Configuración para pin 2 como interrupción
+    bsf		IOCB, 2		;Configuración para pin 3 como interrupción
+    banksel	PORTB
+    movf	PORTB,W		;Mueve registro a w, para comenzar a leerlo
+    bcf		INTCON,0	;Por si la bandera está encendida
+    return
+    
+Botones:
+    btfss   bandera02,modos	;Revisa si la bandera modos està encendida
+    goto    boton_inc		;Si está encendida, va a revisar si se soltó 
+    btfss   PORTB,0		;el botón demodos, sino va a incrementar
+    goto    boton_inc
+;---------------------------Instrucciones modos----------------------------
+    btfsc   bandera03,modo01	    ;Revisa si bandera modo 1 está encendida
+    goto    activar_modo02	    ;Si está va a activar modo 02
+    goto    fin_botones
+    
+    activar_modo01:
+    bcf	    PORTA,6			;Apaga el display gris
+    bcf	    PORTA,7
+    bcf	    PORTB,3
+    bcf	    bandera03,modo05
+    bsf	    bandera03,modo01
+    goto    fin_botones
+    
+    activar_modo02:
+    bsf	    PORTB,3			;Enciende la led indicador via 1
+    movf    TV1,W   
+    movwf   tiempo_temp01		;Carga TV1 a variable temporal
+    bcf	    bandera03,modo01		;Apaga bandera modo 1
+    bsf	    bandera03,modo02		;Enciende bandera modo2
+    goto    fin_botones			;Regresa al loop
+    
+    
+    boton_inc:
+    btfss   bandera02,incr
+    goto    boton_dec
+    btfss   PORTB, 1
+    goto    boton_dec
+;---------------------------------Instrucciones-------------------------------
+    btfsc   bandera03,modo02
+    goto    incModo2
+    goto    fin_botones
+    
+    incModo2:
+   
+    goto    fin_botones
+    boton_dec:
+    
+    fin_botones:
+    return
+    
+Revisa_modos:
+    btfsc   bandera03,modo01
+    goto    Modo_1
+    btfsc   bandera03,modo02
+    goto    Modo_2
+    goto    fin_revisa_modos
+    
+    Modo_1:
+    ;bcf	    PORTA,6			;Apaga el display gris
+    ;bcf	    PORTA,7
+    
+    goto    fin_revisa_modos
+    
+    Modo_2:
+    bcf	    PORTB,5
+    movf    tiempo_temp01,W
+    movwf   var_disp_gris
+    goto    fin_revisa_modos
+    
+    fin_revisa_modos:
+    return
     
 tiempos_vias:
     ;Carga valores iniciales
@@ -310,6 +423,8 @@ tiempos_vias:
     movwf   var_dec3		;Var_dec3 = 20
     ;Verde
     movlw   01001100B		;Verde v1, rojo v2, rojo v3
+    movwf   PORTD 
+    bcf     flag_sel,cero
     movwf   PORTD		;Lo muestra en el puerto D
     bcf     flag_sel,cero	;Clear en las banderas 
     bcf	    bandera,parpadeo01
@@ -317,8 +432,6 @@ tiempos_vias:
     return
     
 Estados:
-    bcf	    PORTA,6
-    bcf	    PORTA,7		;Display gris en gris
     btfsc   bandera,estado_1	;Revisa si la bandera estado 1 está encendida
     goto    Estado_01		;Si está, va a estado 1 
     btfsc   bandera,estado_2	;Si no, revisa si la bandera estado 2 está enc.
@@ -470,6 +583,7 @@ return
 verde_parpadeo_1:
     btfsc   bandera02,int_verde_t1  ;Revisa la bandera parpadeo de la interrup.
     goto    encender_led01	  ;Si está encendida, enciende la led
+    btfss   bandera02,int_verde_t1
     goto    apagar_led01	  ;Si no, apaga la led
     encender_led01:
     bsf	    PORTD,2
@@ -572,6 +686,8 @@ seleccionar_displays:
     clrf    decenas_v4
     clrf    unidades_v4
     call    valores_division	;Realiza las divisiones para unidades/decenas	
+    btfsc   flag,flag_dis8	;Revisa si el display 8 está encendido
+    goto    display_1		;si está encendido,se enciende display 1
     btfsc   flag,flag_dis1	;Revisa si el display 1 está encendido
     goto    display_2		;si está encendido,se enciende display 2
     btfsc   flag,flag_dis2	;Revisa si el display 2 está encendido
@@ -582,12 +698,17 @@ seleccionar_displays:
     goto    display_5		;si está encendido,se enciende display 5
     btfsc   flag,flag_dis5	;Revisa si el display 5 está encendido
     goto    display_6		;si está encendido,se enciende display 6
+    
+    btfss bandera03, modo01
+    goto configs
+    bcf	    flag,flag_dis6	;Apaga la bandera del display 8
+    bsf	    flag,flag_dis8	;Enciende la bandera del display 1
+    goto loop
+    configs:
     btfsc   flag,flag_dis6	;Revisa si el display 6 está encendido
     goto    display_7		;si está encendido,se enciende display 7
     btfsc   flag,flag_dis7	;Revisa si el display 7 está encendido
     goto    display_8		;si está encendido,se enciende display 8
-    btfsc   flag,flag_dis8	;Revisa si el display 8 está encendido
-    goto    display_1		;si está encendido,se enciende display 1
     goto    loop
     
 display_2:
@@ -621,6 +742,7 @@ display_4:
     bcf	    flag,flag_dis3	;Apaga la bandera del display 3
     bsf	    flag,flag_dis4	;Enciende la bandera display 4
     goto    loop
+    
 display_5:
     movf    var_display_5,W	;Mover variable cargada a W
     movwf   PORTC		;Cargamos el valor al puerto c
@@ -746,8 +868,8 @@ division_unidades_v3:
     call    tabla
     movwf   var_display_6	;Regresa los bits modificados   
 ;-------------------------------via 4-----------------------------------------
-    movlw   10
-    movwf   var_A		 ;Carga el valor a los displays
+    movf    var_disp_gris,W	 
+    movwf   var_A		 ;Carga el valor a los displays 7 y 8
 division_decenas_v4:
     movlw   10			 ;mover 10 a w 
     subwf   var_A,F		 ;var_A - 10, 4 - 10		    

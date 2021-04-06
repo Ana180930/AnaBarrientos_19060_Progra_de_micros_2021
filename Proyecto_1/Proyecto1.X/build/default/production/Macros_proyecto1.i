@@ -6,8 +6,9 @@ pull_ups macro
     banksel OPTION_REG
     bcf OPTION_REG, 7 ;Habilita puerto individual para pull ups
     banksel PORTB
-    bsf WPUB, 1 ;Habilita resistencia pull up, bit 1
-    bsf WPUB, 2 ;Habilita resistencia pull up, bit 2
+    bsf WPUB, 0 ;Habilita resistencia pull up, bit 1
+    bsf WPUB, 1 ;Habilita resistencia pull up, bit 2
+    bsf WPUB, 2 ;Habilita resistencia pull up, bit 3
 endm
 
 ;--------------------Configuración del oscilador para 10 ms--------------------
@@ -22,19 +23,38 @@ endm
 ;-------------------Configuracion del reinicio del tmr0------------------------
 reinicio_tmr0 macro
 banksel PORTA ;Va al banco 0 en donde se encuentra PORTA
-    movlw 246 ;Valor inicial para el tmr0, 1 ms
+    movlw 246 ;Valor inicial para el tmr0, 5 ms
     movwf TMR0
     bcf INTCON, 2 ;Limpia la bandera
 
 endm
 
 ;----------------Configuración para la interrupcion del puerto B --------------
-portb_int macro
-    banksel IOCB
-    bsf IOCB, 1 ;Configuración para pin 1 como interrupción
-    bsf IOCB, 2 ;Configuración para pin 2 como interrupción
-    banksel PORTB
-    movf PORTB,W ;Mueve registro a w, para comenzar a leerlo
-    bcf INTCON,0 ;Por si la bandera está encendida
+;portb_int macro
+; banksel IOCB
+; bsf IOCB, 1 ;Configuración para pin 1 como interrupción
+; bsf IOCB, 2 ;Configuración para pin 2 como interrupción
+; banksel PORTB
+; movf PORTB,W ;Mueve registro a w, para comenzar a leerlo
+; bcf INTCON,0 ;Por si la bandera está encendida
+;
+;endm
+
+;--------------------------Underflow y overflow--------------------------------
+Underflow01 macro
+    movlw 9
+    subwf tiempo_temp01,W
+    btfsc STATUS,2
+    movlw 20
+    movwf tiempo_temp01
 
 endm
+
+Overflow01 macro
+    movlw 21
+    subwf tiempo_temp01,W
+    btfsc STATUS,2
+    movlw 10
+    movwf tiempo_temp01
+
+ endm
