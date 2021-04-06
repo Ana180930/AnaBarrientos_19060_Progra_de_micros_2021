@@ -117,7 +117,8 @@ isr:			    ;Rutina de interrupción
     btfsc   TMR1IF
     goto    t1_int
     btfsc   RBIF	 ;Revisa bandera del puerto b
-    goto    rbif_portb	 
+    goto    rbif_portb
+    
      
 pop:
     swapf   STATUS_TEMP,W   ;Regresa registro STATUS original a W
