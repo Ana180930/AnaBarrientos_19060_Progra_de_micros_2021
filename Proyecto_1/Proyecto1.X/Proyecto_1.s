@@ -431,6 +431,7 @@ Revisa_modos:
     movwf   var_disp_gris
     goto    fin_revisa_modos
     
+    
     fin_revisa_modos:
     return
     
