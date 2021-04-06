@@ -46,7 +46,18 @@ Underflow01 macro
     subwf tiempo_temp01,W
     btfsc STATUS,2
     movlw 20
+    btfsc STATUS,2
     movwf tiempo_temp01
+
+endm
+
+Underflow02 macro
+    movlw 9
+    subwf tiempo_temp02,W
+    btfsc STATUS,2
+    movlw 20
+    btfsc STATUS,2
+    movwf tiempo_temp02
 
 endm
 
@@ -55,6 +66,27 @@ Overflow01 macro
     subwf tiempo_temp01,W
     btfsc STATUS,2
     movlw 10
+    btfsc STATUS,2
     movwf tiempo_temp01
 
  endm
+
+ Overflow02 macro
+    movlw 21
+    subwf tiempo_temp02,W
+    btfsc STATUS,2
+    movlw 10
+    btfsc STATUS,2
+    movwf tiempo_temp02
+
+ endm
+
+
+apagar_banderas macro
+
+
+
+    bcf bandera02,3
+    bcf bandera02,5
+    bcf bandera02,4
+endm
