@@ -1,5 +1,5 @@
 ;******************************************************************************
-;Archivo: Laboratorio6.s
+;Archivo: Proyecto_1.s
 ;Dispositivo: PIC16F887
 ;Autor: Ana Barrientos
 ;Carnet: 19060
