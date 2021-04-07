@@ -58,6 +58,16 @@ Underflow02 macro
     
 endm
     
+Underflow03 macro
+    movlw   9
+    subwf   tiempo_temp03,W
+    btfsc   STATUS,2
+    movlw   20
+    btfsc   STATUS,2
+    movwf   tiempo_temp03
+    
+endm
+    
 Overflow01 macro
     movlw   21
     subwf   tiempo_temp01,W
@@ -77,15 +87,32 @@ Overflow01 macro
     movwf   tiempo_temp02
     
  endm
-
+ 
+  Overflow03 macro
+    movlw   21
+    subwf   tiempo_temp03,W
+    btfsc   STATUS,2
+    movlw   10
+    btfsc   STATUS,2
+    movwf   tiempo_temp03
+    
+ endm
     
 apagar_banderas macro
     #define	    modos	 3
     #define	    decr	 4
     #define	    incr	 5
-    bcf	    bandera02,modos
-    bcf	    bandera02,incr
-    bcf	    bandera02,decr
+    bcf		    bandera02,modos
+    bcf		    bandera02,incr
+    bcf		    bandera02,decr
 endm
 
-
+reseteo macro
+    #define    modo05	4 
+    #define    modo01	0
+    
+    movlw   01001001B
+    movwf   PORTD
+    bcf	    bandera03,modo05
+    bsf	    bandera03,modo01
+ endm
