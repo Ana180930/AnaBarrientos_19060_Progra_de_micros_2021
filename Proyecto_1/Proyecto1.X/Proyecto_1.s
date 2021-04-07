@@ -54,7 +54,7 @@ PSECT udata_bank0 ;PSECT = sección del programa
     tiempo_temp01:	    DS 1;1 byte
     tiempo_temp02:	    DS 1;1 byte
     tiempo_temp03:	    DS 1;1 byte
-;PSECT udata_shr ;memoria compartida, variables para interrupciones
+PSECT udata_shr ;memoria compartida, variables para interrupciones
     W_TEMP:	    DS 1 ;1 byte
     STATUS_TEMP:    DS 1 ;1 byte
     flag_sel:	    DS 1 

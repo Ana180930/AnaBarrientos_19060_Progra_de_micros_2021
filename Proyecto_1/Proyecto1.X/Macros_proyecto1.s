@@ -26,18 +26,7 @@ banksel   PORTA	    ;Va al banco 0 en donde se encuentra PORTA
     
 endm
   
-;----------------Configuración para la interrupcion del puerto B --------------   
-;portb_int macro
-;    banksel	IOCB
-;    bsf		IOCB, 1		;Configuración para pin 1 como interrupción
-;    bsf		IOCB, 2		;Configuración para pin 2 como interrupción
-;    banksel	PORTB
-;    movf	PORTB,W		;Mueve registro a w, para comenzar a leerlo
-;    bcf		INTCON,0	;Por si la bandera está encendida
-;  
-;endm
-
-;--------------------------Underflow y overflow--------------------------------
+;-------------------------------Underflow y overflow-------------------------
 Underflow01 macro
     movlw   9
     subwf   tiempo_temp01,W
@@ -97,7 +86,8 @@ Overflow01 macro
     movwf   tiempo_temp03
     
  endm
-    
+ 
+;----------------------------------Apagar banderas----------------------------   
 apagar_banderas macro
     #define	    modos	 3
     #define	    decr	 4
@@ -107,12 +97,4 @@ apagar_banderas macro
     bcf		    bandera02,decr
 endm
 
-reseteo macro
-    #define    modo05	4 
-    #define    modo01	0
-    
-    movlw   01001001B
-    movwf   PORTD
-    bcf	    bandera03,modo05
-    bsf	    bandera03,modo01
- endm
+
