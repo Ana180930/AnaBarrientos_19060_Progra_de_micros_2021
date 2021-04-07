@@ -480,6 +480,7 @@ Revisa_modos:
     goto    fin_revisa_modos
     
     Modo_1:
+    
     btfss   bandera02,modo01
     bsf	    bandera,estado_1
     bcf	    bandera,estado_1    
