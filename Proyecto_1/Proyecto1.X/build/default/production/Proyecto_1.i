@@ -2975,6 +2975,8 @@ Botones:
     ;clrf tiempo_temp01
     bcf bandera02,7
     bsf bandera03,0
+    bcf bandera,1
+    bcf bandera,2
     bsf bandera,0
     goto fin_botones
 
@@ -3034,6 +3036,7 @@ Revisa_modos:
     goto fin_revisa_modos
 
     Modo_1:
+
     btfss bandera02,0
     bsf bandera,0
     bcf bandera,0
@@ -3088,8 +3091,10 @@ tiempos_vias:
 Estados:
     btfsc bandera,0 ;Revisa si la bandera estado 1 está encendida
     goto Estado_01 ;Si está, va a estado 1
-    btfsc bandera,1
-    goto Estado_02
+    btfsc bandera,1 ;Si no, revisa si la bandera estado 2 está enc.
+    goto Estado_02 ;Si está, va a estado 2
+    btfsc bandera,2 ;Si no, revisa si la bandera estado 3 está ence.
+    goto Estado_03 ;Si está, va a estado 3
     goto fin_estados ;Si no, regresa al loop
 
 ;-----------------------------------Estados-----------------------------------
@@ -3150,7 +3155,6 @@ Estado_02:
     movwf PORTD
     bcf flag_sel,2 ;Apaga la bandera de reset
     bsf flag_sel,3 ;Enciende una bandera de paso
-    bcf bandera,1
     clrf dec_ledverde
 
     verde_t02:
@@ -3181,7 +3185,6 @@ Estado_02:
     btfsc flag_sel,2 ;Si está encendida, va resetear
     goto reset_2
 
-
 Estado_03:
     ;Displays y leds v1 = verde (10 s), via 2 = rojo (10s), via 3 = rojo (20s)
     btfss flag_sel,2 ;Bandera reseteo
@@ -3199,7 +3202,6 @@ Estado_03:
     bsf PORTE,0
     bcf flag_sel,2 ;Apaga la bandera de reset
     bsf flag_sel,4 ;Enciende una bandera de paso
-    bcf bandera,2
     clrf dec_ledverde
 
     verde_t03:
@@ -3286,14 +3288,14 @@ amarillo_2:
     goto revisar_cero02 ;Regresa a 2 02
 
 reset_2:
-    bcf bandera,1 ;Apaga la bandera estado 1
-    bsf bandera,0 ;Enciende la bandera estado 2
+    bcf bandera,1 ;Apaga la bandera estado 2
+    bsf bandera,2 ;Enciende la bandera estado 3
     clrf var_dec1
     clrf var_dec2
     clrf var_dec3 ;Quita el valor anterior
     clrf PORTD
-    bcf bandera,5
-    bcf bandera,6 ;Apago la bandera de led 6
+    ;bcf bandera,5
+    ;bcf bandera,6 ;Apago la bandera de led 6
     goto fin_estados ;Regresa al loop
 
 verde_parpadeo_3:
@@ -3318,7 +3320,7 @@ amarillo_3:
 
 reset_3:
     bcf bandera,2 ;Apaga la bandera estado 3
-    ;bsf bandera,0 ;Enciende la bandera estado 1
+    bsf bandera,0 ;Enciende la bandera estado 1
     clrf var_dec1
     clrf var_dec2
     clrf var_dec3 ;Quita el valor anterior
@@ -3326,6 +3328,8 @@ reset_3:
     bcf bandera,3
     bcf bandera,6 ;Apago la bandera de led 6
     goto fin_estados ;Regreso al loop
+
+
 
 
 seleccionar_displays:
@@ -3536,6 +3540,7 @@ division_unidades_v3:
 ;-------------------------------via 4-----------------------------------------
     movf var_disp_gris,W
     movwf var_A ;Carga el valor a los displays 7 y 8
+
 division_decenas_v4:
     movlw 10 ;mover 10 a w
     subwf var_A,F ;var_A - 10, 4 - 10
