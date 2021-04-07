@@ -7,7 +7,7 @@
 ;******************************************************************************
 PROCESSOR 16F887 // Para indicar que microprocesador es 
 #include <xc.inc> 
-#include "Proyecto_1.s"
+#include "Macros_proyecto1.s"
     
 ;Configuration word 1
 CONFIG FOSC=INTRC_NOCLKOUT // Oscilador interno sin salidas
@@ -222,7 +222,7 @@ main:
     clrf    var_A
     bsf	    flag,flag_dis1
     bsf	    bandera,estado_1
-    bsf	    bandera03,modo01		;Enciende la bandera del modo 1
+    bsf	    bandera03,modo_01		;Enciende la bandera del modo 1
     call    tiempos_vias
     config_reloj			;Configuracion del oscilador
   
@@ -315,7 +315,7 @@ Botones:
     bcf	    PORTB,5
     bcf	    PORTB,7
     bcf	    bandera02,modo5	    ;Apaga bandera del modo 5
-    bsf	    bandera03,modo01	    ;Enciende bandera del modo 1
+    bsf	    bandera03,modo_01	    ;Enciende bandera del modo 1
     apagar_banderas		    ;Macro para apagar banderas
     goto    fin_botones
     
@@ -853,7 +853,7 @@ display_6:
 display_7:
     movf    var_display_7,W	;Mover variable cargada a W
     movwf   PORTC		;Cargamos el valor al puerto c
-    btfsc   bandera03,modo01	;Si el display está en el modo 1, lo apaga
+    btfsc   bandera03,modo_01	;Si el display está en el modo 1, lo apaga
     goto    apagar_gris01
     goto    encender_gris01	;Si no, lo enciende 
     apagar_gris01:
@@ -869,7 +869,7 @@ display_7:
 display_8:
     movf    var_display_8,W	;Mover variable cargada a W
     movwf   PORTC		;Cargamos el valor al puerto c
-    btfsc   bandera03,modo01
+    btfsc   bandera03,modo_01
     goto    apagar_gris02
     goto    encender_gris02	;Si el display está en el modo 1, lo apaga
     apagar_gris02:
