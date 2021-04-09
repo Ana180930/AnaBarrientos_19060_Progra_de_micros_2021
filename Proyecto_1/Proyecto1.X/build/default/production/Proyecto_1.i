@@ -2932,16 +2932,6 @@ Botones:
 
     guardar_valores:
 ;------------------------------------Reseteo----------------------------------
-    movlw 01001001B ;Enciende leds rojos
-    movwf PORTD
-    btfsc bandera02,7 ;Revisa si la bandera de modo 5 está encendida
-    goto reset_disp
-    goto continuar
-    reset_disp:
-    clrf var_dec1 ;Limpia las variables
-    clrf var_dec2
-    clrf var_dec3
-    continuar:
     clrf TV1
     movf tiempo_temp01,w ;Carga los valores a las variables
     movwf TV1
@@ -2954,7 +2944,16 @@ Botones:
     bcf bandera,1 ;Apaga las banderas de los estados
     bcf bandera,2
     bsf bandera,0 ;Enciende la bandera del estado 1
+
+    btfsc bandera02,7 ;Revisa si la bandera de modo 5 está encendida
+    goto reset_disp
     goto fin_botones
+reset_disp:
+    movlw 01001001B ;Enciende leds rojos
+    movwf PORTD
+    clrf var_dec1 ;Limpia las variables
+    clrf var_dec2
+    clrf var_dec3
 
 ;------------------------------Decrementar variables---------------------------
    boton_dec:
